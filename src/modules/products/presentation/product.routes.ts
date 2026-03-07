@@ -34,11 +34,13 @@ export const productRoutes = new Elysia({ prefix: "/products" })
     async ({ query, organization }) => {
       const page = query.page ?? 1;
       const limit = query.limit ?? 10;
+      const search = query.search ?? "";
 
       const result = await productService.findAll({
         organizationId: organization.id,
         page,
         limit,
+        search,
       });
       return result;
     },
@@ -48,6 +50,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       query: t.Object({
         page: t.Optional(t.Number({ minimum: 1 })),
         limit: t.Optional(t.Number({ minimum: 1, maximum: 100 })),
+        search: t.Optional(t.String()),
       }),
     },
   )

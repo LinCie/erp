@@ -27,6 +27,7 @@ export type FindAllProductsInput = {
   organizationId: string;
   page: number;
   limit: number;
+  search?: string;
 };
 
 export type FindAllProductsOutput = {

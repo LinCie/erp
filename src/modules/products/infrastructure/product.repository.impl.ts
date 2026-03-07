@@ -62,22 +62,23 @@ export class ProductRepositoryImpl implements ProductRepository {
   async findAll(input: FindAllProductsInput): Promise<FindAllProductsOutput> {
     const offset = (input.page - 1) * input.limit;
 
+    let baseQuery = db
+      .selectFrom("products")
+      .where("organizationId", "=", input.organizationId)
+      .where("deletedAt", "is", null);
+
+    if (input.search) {
+      baseQuery = baseQuery.where("name", "ilike", `%${input.search}%`);
+    }
+
     const [products, countResult] = await Promise.all([
-      db
-        .selectFrom("products")
+      baseQuery
         .selectAll()
-        .where("organizationId", "=", input.organizationId)
-        .where("deletedAt", "is", null)
         .orderBy("createdAt", "desc")
         .limit(input.limit)
         .offset(offset)
         .execute(),
-      db
-        .selectFrom("products")
-        .select((eb) => eb.fn.countAll().as("count"))
-        .where("organizationId", "=", input.organizationId)
-        .where("deletedAt", "is", null)
-        .executeTakeFirst(),
+      baseQuery.select((eb) => eb.fn.countAll().as("count")).executeTakeFirst(),
     ]);
 
     const total = Number(countResult?.count ?? 0);
