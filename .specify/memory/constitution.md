@@ -1,11 +1,13 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: N/A (Initial) → 1.0.0
-Modified Principles: N/A (Initial creation)
-Added Sections: All sections (initial constitution)
+Version Change: 1.0.0 → 1.1.0
+Modified Principles: None
+Added Sections: VI. Bun-First Toolchain
 Removed Sections: None
-Templates Requiring Updates: ⚠ None (new project)
+Templates Requiring Updates:
+  - ⚠ None (no templates reference package manager)
+  - ⚠ Consider updating: README.md, docs/quickstart.md if they exist
 Follow-up TODOs: None
 -->
 
@@ -43,11 +45,18 @@ All database schema changes MUST go through Kysely migrations. Migrations MUST b
 
 **Rationale**: Version-controlled migrations enable safe schema evolution across environments. Backwards-compatible changes allow zero-downtime deployments.
 
+### VI. Bun-First Toolchain (NON-NEGOTIABLE)
+
+Bun MUST be used as the exclusive package manager and runtime for all development tasks. All `package.json` scripts MUST use `bun run` instead of `npm run` or `npx`. The `bun.lock` file MUST be committed and kept in sync. No `node_modules` should be installed via npm or yarn.
+
+**Rationale**: Bun provides faster package installation (10-100x faster than npm/yarn), better monorepo support, and native TypeScript execution. Using a single toolchain eliminates configuration conflicts and ensures consistent behavior across all environments (local, CI, production).
+
 ## Technology Standards
 
 **Language**: TypeScript 5.x with strict mode
+**Package Manager**: Bun (MUST use `bun install`, `bun run` for all scripts)
 **Frontend**: Next.js 14+ with App Router
-**Backend**: Elysia (Bun runtime)
+**Backend**: Elysia (Bun runtime) - MUST be run via `bun run`
 **Database**: PostgreSQL via Kysely ORM
 **Authentication**: better-auth with session management
 **Styling**: Tailwind CSS with shadcn/ui components
@@ -56,10 +65,12 @@ All database schema changes MUST go through Kysely migrations. Migrations MUST b
 ## Development Workflow
 
 1. All features start with a specification in `.specify/specs/`
-2. Database changes require migration review before deployment
-3. API changes require contract test updates
-4. PRs must pass type checking, linting, and tests
-5. Complex changes require architectural review
+2. Use `bun install` to add dependencies (never npm/yarn)
+3. Use `bun run <script>` to execute all package.json scripts
+4. Database changes require migration review before deployment
+5. API changes require contract test updates
+6. PRs must pass type checking (`bun run lint`), and tests
+7. Complex changes require architectural review
 
 ## Governance
 
@@ -72,4 +83,4 @@ This constitution is the authoritative source for project standards. All code re
 
 **Compliance Review**: Quarterly review of codebase against constitution. Non-compliant code must be refactored or granted exception with documented justification.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-07
+**Version**: 1.1.0 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-07
