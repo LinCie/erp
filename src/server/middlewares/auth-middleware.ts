@@ -2,17 +2,25 @@ import { Elysia } from "elysia";
 import { auth } from "../../lib/auth/auth";
 
 export const authPlugin = new Elysia({ name: "auth" }).macro({
-  auth: {
+  requireAuth: {
     async resolve({ status, request: { headers } }) {
       const session = await auth.api.getSession({ headers });
-      const organization = await auth.api.getFullOrganization({ headers });
 
       if (!session) return status(401);
 
       return {
         user: session.user,
         session: session.session,
-        organization: organization,
+      };
+    },
+  },
+  requireOrg: {
+    async resolve({ status, request: { headers } }) {
+      const organization = await auth.api.getFullOrganization({ headers });
+      if (!organization) return status(401);
+
+      return {
+        organization,
       };
     },
   },

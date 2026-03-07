@@ -1,17 +1,8 @@
 import { Elysia } from "elysia";
+import { swagger } from "@elysiajs/swagger";
 import { cors } from "@elysiajs/cors";
 import { auth } from "../lib/auth/auth";
-import { authPlugin } from "./middlewares/auth-middleware";
-import type { Session, User } from "better-auth";
-import type { Organization } from "better-auth/plugins";
-
-declare global {
-  interface Request {
-    user?: User;
-    session?: Session;
-    organization?: Organization;
-  }
-}
+import { productRoutes } from "../modules/products/presentation/product.routes";
 
 const corsOrigin =
   process.env.NODE_ENV === "production"
@@ -27,21 +18,12 @@ export const app = new Elysia({ prefix: "/api" })
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     }),
   )
-  .mount(auth.handler)
-  .use(authPlugin)
+  .use(swagger())
   .get("/health", () => ({
     status: "ok",
     timestamp: new Date().toISOString(),
   }))
-  .get(
-    "/protected",
-    ({ request }) => {
-      return {
-        message: "Hello authenticated user!",
-        user: request.user,
-      };
-    },
-    { auth: true },
-  );
+  .mount(auth.handler)
+  .use(productRoutes);
 
 export type App = typeof app;
