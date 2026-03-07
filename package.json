@@ -11,7 +11,7 @@
     "db:migrate:create": "kysely migrate make",
     "db:rollback": "kysely migrate rollback",
     "db:status": "kysely migrate list",
-    "db:codegen": "kysely-codegen --out-file src/shared/infrastructure/persistence/types.ts --camel-case"
+    "db:codegen": "kysely-codegen --out-file src/lib/database/types.ts --camel-case"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",
