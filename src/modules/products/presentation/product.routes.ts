@@ -52,6 +52,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       response: {
         200: ProductSchema,
       },
+      detail: {
+        tags: ["Products"],
+        summary: "Create a new product",
+      },
     },
   )
   .get(
@@ -83,6 +87,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
           metadata: PaginationMetadataSchema,
         }),
       },
+      detail: {
+        tags: ["Products"],
+        summary: "List all products",
+      },
     },
   )
   .get(
@@ -110,6 +118,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         200: ProductSchema,
         403: ErrorSchema,
         404: ErrorSchema,
+      },
+      detail: {
+        tags: ["Products"],
+        summary: "Get a product by ID",
       },
     },
   )
@@ -141,6 +153,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         200: ProductSchema,
         403: ErrorSchema,
         404: ErrorSchema,
+      },
+      detail: {
+        tags: ["Products"],
+        summary: "Get a product by slug",
       },
     },
   )
@@ -182,6 +198,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         403: ErrorSchema,
         404: ErrorSchema,
       },
+      detail: {
+        tags: ["Products"],
+        summary: "Update a product",
+      },
     },
   )
   .delete(
@@ -209,6 +229,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         200: t.Void(),
         403: ErrorSchema,
         404: ErrorSchema,
+      },
+      detail: {
+        tags: ["Products"],
+        summary: "Delete a product",
       },
     },
   );

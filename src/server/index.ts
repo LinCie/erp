@@ -18,7 +18,15 @@ export const app = new Elysia({ prefix: "/api" })
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     }),
   )
-  .use(swagger())
+  .use(
+    swagger({
+      documentation: {
+        tags: [
+          { name: "Products", description: "Product management endpoints" },
+        ],
+      },
+    }),
+  )
   .get("/health", () => ({
     status: "ok",
     timestamp: new Date().toISOString(),
