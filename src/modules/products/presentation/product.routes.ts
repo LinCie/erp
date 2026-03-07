@@ -5,6 +5,28 @@ import { authPlugin } from "@/server/middlewares/auth-middleware";
 
 const productService = new ProductService(new ProductRepositoryImpl());
 
+const ProductSchema = t.Object({
+  id: t.String(),
+  organizationId: t.String(),
+  name: t.String(),
+  description: t.Union([t.String(), t.Null()]),
+  slug: t.String(),
+  createdAt: t.Date(),
+  updatedAt: t.Date(),
+  deletedAt: t.Union([t.Date(), t.Null()]),
+});
+
+const ErrorSchema = t.Object({
+  error: t.String(),
+});
+
+const PaginationMetadataSchema = t.Object({
+  page: t.Number(),
+  limit: t.Number(),
+  total: t.Number(),
+  totalPages: t.Number(),
+});
+
 export const productRoutes = new Elysia({ prefix: "/products" })
   .use(authPlugin)
   .post(
@@ -27,6 +49,9 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         description: t.Union([t.String(), t.Null()]),
         slug: t.String({ minLength: 1, maxLength: 255 }),
       }),
+      response: {
+        200: ProductSchema,
+      },
     },
   )
   .get(
@@ -52,19 +77,25 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         limit: t.Optional(t.Number({ minimum: 1, maximum: 100 })),
         search: t.Optional(t.String()),
       }),
+      response: {
+        200: t.Object({
+          data: t.Array(ProductSchema),
+          metadata: PaginationMetadataSchema,
+        }),
+      },
     },
   )
   .get(
     "/:id",
-    async ({ params, organization }) => {
+    async ({ params, organization, status }) => {
       const product = await productService.findById({ id: params.id });
 
       if (!product) {
-        return new Response("Product not found", { status: 404 });
+        return status(404, { error: "Product not found" });
       }
 
       if (product.organizationId !== organization.id) {
-        return new Response("Forbidden", { status: 403 });
+        return status(403, { error: "Forbidden" });
       }
 
       return product;
@@ -75,22 +106,27 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       params: t.Object({
         id: t.String(),
       }),
+      response: {
+        200: ProductSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+      },
     },
   )
   .get(
     "/slug/:slug",
-    async ({ params, organization }) => {
+    async ({ params, organization, status }) => {
       const product = await productService.findBySlug({
         organizationId: organization.id,
         slug: params.slug,
       });
 
       if (!product) {
-        return new Response("Product not found", { status: 404 });
+        return status(404, { error: "Product not found" });
       }
 
       if (product.organizationId !== organization.id) {
-        return new Response("Forbidden", { status: 403 });
+        return status(403, { error: "Forbidden" });
       }
 
       return product;
@@ -101,19 +137,24 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       params: t.Object({
         slug: t.String(),
       }),
+      response: {
+        200: ProductSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+      },
     },
   )
   .patch(
     "/:id",
-    async ({ params, body, organization }) => {
+    async ({ params, body, organization, status }) => {
       const existingProduct = await productService.findById({ id: params.id });
 
       if (!existingProduct) {
-        return new Response("Product not found", { status: 404 });
+        return status(404, { error: "Product not found" });
       }
 
       if (existingProduct.organizationId !== organization.id) {
-        return new Response("Forbidden", { status: 403 });
+        return status(403, { error: "Forbidden" });
       }
 
       const product = await productService.update({
@@ -136,24 +177,27 @@ export const productRoutes = new Elysia({ prefix: "/products" })
           slug: t.String({ minLength: 1, maxLength: 255 }),
         }),
       ),
+      response: {
+        200: ProductSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+      },
     },
   )
   .delete(
     "/:id",
-    async ({ params, organization }) => {
+    async ({ params, organization, status }) => {
       const existingProduct = await productService.findById({ id: params.id });
 
       if (!existingProduct) {
-        return new Response("Product not found", { status: 404 });
+        return status(404, { error: "Product not found" });
       }
 
       if (existingProduct.organizationId !== organization.id) {
-        return new Response("Forbidden", { status: 403 });
+        return status(403, { error: "Forbidden" });
       }
 
       await productService.delete({ id: params.id });
-
-      return new Response(null, { status: 204 });
     },
     {
       requireAuth: true,
@@ -161,5 +205,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       params: t.Object({
         id: t.String(),
       }),
+      response: {
+        200: t.Void(),
+        403: ErrorSchema,
+        404: ErrorSchema,
+      },
     },
   );
