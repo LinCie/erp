@@ -31,7 +31,13 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**Gates (from ERP Constitution):**
+
+- [ ] **Component-Based Architecture**: UI changes use reusable TypeScript components with shadcn/ui patterns
+- [ ] **API-First Design**: New endpoints have explicit TypeScript contracts shared frontend/backend
+- [ ] **Type Safety**: All code passes TypeScript strict mode; no `any` types without justification
+- [ ] **Test-Driven**: Tests written for business logic and API contracts (unit/integration)
+- [ ] **Database Discipline**: Schema changes have Kysely migration; types regenerated
 
 ## Project Structure
 
