@@ -9,6 +9,6 @@ export default defineConfig({
     }),
   }),
   migrations: {
-    migrationFolder: "src/lib/database/migrations",
+    migrationFolder: "src/shared/infrastructure/database/migrations",
   },
 });
