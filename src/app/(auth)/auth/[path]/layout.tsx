@@ -4,12 +4,23 @@ import Link from "next/link";
 
 import layoutImage from "@/assets/images/laptop.jpg";
 import logoImage from "@/assets/images/logo.jpg";
+import { auth } from "@/lib/auth/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
 }
 
-export default function AuthLayout({ children }: AuthLayoutProps) {
+export default async function AuthLayout({ children }: AuthLayoutProps) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (session) {
+    redirect("/");
+  }
+
   return (
     <div className="container relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
       {/* LEFT SIDE: Forms (Children) */}
