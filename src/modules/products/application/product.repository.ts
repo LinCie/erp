@@ -11,6 +11,8 @@ import type {
   UpdateProductOutput,
   DeleteProductInput,
   DeleteProductOutput,
+  CheckSlugUniquenessInput,
+  CheckSlugUniquenessOutput,
 } from "./types/product.types";
 
 export interface ProductRepository {
@@ -20,5 +22,7 @@ export interface ProductRepository {
   findAll(input: FindAllProductsInput): Promise<FindAllProductsOutput>;
   update(input: UpdateProductInput): Promise<UpdateProductOutput>;
   delete(input: DeleteProductInput): Promise<DeleteProductOutput>;
+  checkSlugUniqueness(
+    input: CheckSlugUniquenessInput,
+  ): Promise<CheckSlugUniquenessOutput>;
 }
-

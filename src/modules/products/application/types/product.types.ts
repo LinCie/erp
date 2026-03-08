@@ -37,6 +37,7 @@ export type FindAllProductsOutput = {
 
 export type UpdateProductInput = {
   id: string;
+  organizationId: string;
   name?: string;
   description?: string | null;
   slug?: string;
@@ -49,3 +50,13 @@ export type DeleteProductInput = {
 };
 
 export type DeleteProductOutput = void;
+
+export type CheckSlugUniquenessInput = {
+  organizationId: string;
+  slug: string;
+  excludeId?: string;
+};
+
+export type CheckSlugUniquenessOutput = {
+  isAvailable: boolean;
+};

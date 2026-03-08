@@ -31,15 +31,25 @@ export const productRoutes = new Elysia({ prefix: "/products" })
   .use(authPlugin)
   .post(
     "/",
-    async ({ body, organization }) => {
-      const product = await productService.create({
-        name: body.name,
-        description: body.description ?? null,
-        slug: body.slug,
-        organizationId: organization.id,
-      });
+    async ({ body, organization, status }) => {
+      try {
+        const product = await productService.create({
+          name: body.name,
+          description: body.description ?? null,
+          slug: body.slug,
+          organizationId: organization.id,
+        });
 
-      return product;
+        return product;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "Slug is already taken"
+        ) {
+          return status(409, { error: "Slug is already taken" });
+        }
+        throw error;
+      }
     },
     {
       requireAuth: true,
@@ -51,6 +61,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       }),
       response: {
         200: ProductSchema,
+        409: ErrorSchema,
       },
       detail: {
         tags: ["Products"],
@@ -90,6 +101,37 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       detail: {
         tags: ["Products"],
         summary: "List all products",
+      },
+    },
+  )
+  .get(
+    "/check-slug/:slug",
+    async ({ params, query, organization }) => {
+      const result = await productService.checkSlugUniqueness({
+        organizationId: organization.id,
+        slug: params.slug,
+        excludeId: query.excludeId,
+      });
+
+      return result;
+    },
+    {
+      requireAuth: true,
+      requireOrg: true,
+      params: t.Object({
+        slug: t.String(),
+      }),
+      query: t.Object({
+        excludeId: t.Optional(t.String()),
+      }),
+      response: {
+        200: t.Object({
+          isAvailable: t.Boolean(),
+        }),
+      },
+      detail: {
+        tags: ["Products"],
+        summary: "Check if a product slug is available",
       },
     },
   )
@@ -173,12 +215,23 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         return status(403, { error: "Forbidden" });
       }
 
-      const product = await productService.update({
-        id: params.id,
-        ...body,
-      });
+      try {
+        const product = await productService.update({
+          id: params.id,
+          organizationId: organization.id,
+          ...body,
+        });
 
-      return product;
+        return product;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "Slug is already taken"
+        ) {
+          return status(409, { error: "Slug is already taken" });
+        }
+        throw error;
+      }
     },
     {
       requireAuth: true,
@@ -197,6 +250,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         200: ProductSchema,
         403: ErrorSchema,
         404: ErrorSchema,
+        409: ErrorSchema,
       },
       detail: {
         tags: ["Products"],

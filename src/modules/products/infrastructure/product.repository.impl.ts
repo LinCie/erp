@@ -14,6 +14,8 @@ import type {
   UpdateProductOutput,
   DeleteProductInput,
   DeleteProductOutput,
+  CheckSlugUniquenessInput,
+  CheckSlugUniquenessOutput,
 } from "../application/types/product.types";
 import type { ProductRepository } from "../application/product.repository";
 import type { ProductEntity } from "../domain/product.entity";
@@ -145,5 +147,24 @@ export class ProductRepositoryImpl implements ProductRepository {
       updatedAt: product.updatedAt,
       deletedAt: product.deletedAt,
     };
+  }
+
+  async checkSlugUniqueness(
+    input: CheckSlugUniquenessInput,
+  ): Promise<CheckSlugUniquenessOutput> {
+    let query = db
+      .selectFrom("products")
+      .select("id")
+      .where("organizationId", "=", input.organizationId)
+      .where("slug", "=", input.slug)
+      .where("deletedAt", "is", null);
+
+    if (input.excludeId) {
+      query = query.where("id", "!=", input.excludeId);
+    }
+
+    const existing = await query.executeTakeFirst();
+
+    return { isAvailable: !existing };
   }
 }
