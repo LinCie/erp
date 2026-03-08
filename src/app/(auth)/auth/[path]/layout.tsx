@@ -4,9 +4,9 @@ import Link from "next/link";
 
 import layoutImage from "@/assets/images/laptop.jpg";
 import logoImage from "@/assets/images/logo.jpg";
-import { auth } from "@/lib/auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { auth } from "@/shared/presentation/libraries/auth/auth";
 
 interface AuthLayoutProps {
   children: React.ReactNode;

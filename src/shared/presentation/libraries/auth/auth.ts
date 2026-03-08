@@ -1,7 +1,7 @@
+import { db } from "@/shared/infrastructure/database";
 import { betterAuth } from "better-auth";
 import { organization } from "better-auth/plugins";
-import { sendEmail } from "@/lib/email/email-client";
-import { db } from "../../shared/infrastructure/database";
+import { sendEmail } from "../email/email-client";
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not set");

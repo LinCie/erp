@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { auth } from "../lib/auth/auth";
 import { productRoutes } from "../modules/products/presentation/product.routes";
+import { auth } from "@/shared/presentation/libraries/auth/auth";
 
 const corsOrigin =
   process.env.NODE_ENV === "production"

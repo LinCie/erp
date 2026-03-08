@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth/auth";
+import { auth } from "@/shared/presentation/libraries/auth/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 

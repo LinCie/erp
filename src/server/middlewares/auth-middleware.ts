@@ -1,5 +1,5 @@
+import { auth } from "@/shared/presentation/libraries/auth/auth";
 import { Elysia } from "elysia";
-import { auth } from "../../lib/auth/auth";
 
 export const authPlugin = new Elysia({ name: "auth" }).macro({
   requireAuth: {
