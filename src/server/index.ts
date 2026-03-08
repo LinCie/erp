@@ -1,5 +1,4 @@
 import { Elysia } from "elysia";
-import { swagger } from "@elysiajs/swagger";
 import { cors } from "@elysiajs/cors";
 import { auth } from "../lib/auth/auth";
 import { productRoutes } from "../modules/products/presentation/product.routes";
@@ -16,15 +15,6 @@ export const app = new Elysia({ prefix: "/api" })
       credentials: true,
       allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    }),
-  )
-  .use(
-    swagger({
-      documentation: {
-        tags: [
-          { name: "Products", description: "Product management endpoints" },
-        ],
-      },
     }),
   )
   .get("/health", () => ({

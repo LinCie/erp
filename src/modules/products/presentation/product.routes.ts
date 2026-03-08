@@ -1,30 +1,31 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
+import { z } from "zod";
 import { ProductService } from "../application/product.service";
 import { ProductRepositoryImpl } from "../infrastructure/product.repository.impl";
 import { authPlugin } from "@/server/middlewares/auth-middleware";
 
 const productService = new ProductService(new ProductRepositoryImpl());
 
-const ProductSchema = t.Object({
-  id: t.String(),
-  organizationId: t.String(),
-  name: t.String(),
-  description: t.Union([t.String(), t.Null()]),
-  slug: t.String(),
-  createdAt: t.Date(),
-  updatedAt: t.Date(),
-  deletedAt: t.Union([t.Date(), t.Null()]),
+const ProductSchema = z.object({
+  id: z.string(),
+  organizationId: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  slug: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  deletedAt: z.date().nullable(),
 });
 
-const ErrorSchema = t.Object({
-  error: t.String(),
+const ErrorSchema = z.object({
+  error: z.string(),
 });
 
-const PaginationMetadataSchema = t.Object({
-  page: t.Number(),
-  limit: t.Number(),
-  total: t.Number(),
-  totalPages: t.Number(),
+const PaginationMetadataSchema = z.object({
+  page: z.number(),
+  limit: z.number(),
+  total: z.number(),
+  totalPages: z.number(),
 });
 
 export const productRoutes = new Elysia({ prefix: "/products" })
@@ -54,10 +55,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
     {
       requireAuth: true,
       requireOrg: true,
-      body: t.Object({
-        name: t.String({ minLength: 1, maxLength: 255 }),
-        description: t.Union([t.String(), t.Null()]),
-        slug: t.String({ minLength: 1, maxLength: 255 }),
+      body: z.object({
+        name: z.string().min(1).max(255),
+        description: z.string().nullable(),
+        slug: z.string().min(1).max(255),
       }),
       response: {
         200: ProductSchema,
@@ -87,14 +88,14 @@ export const productRoutes = new Elysia({ prefix: "/products" })
     {
       requireAuth: true,
       requireOrg: true,
-      query: t.Object({
-        page: t.Optional(t.Number({ minimum: 1 })),
-        limit: t.Optional(t.Number({ minimum: 1, maximum: 100 })),
-        search: t.Optional(t.String()),
+      query: z.object({
+        page: z.number().min(1).optional(),
+        limit: z.number().min(1).max(100).optional(),
+        search: z.string().optional(),
       }),
       response: {
-        200: t.Object({
-          data: t.Array(ProductSchema),
+        200: z.object({
+          data: z.array(ProductSchema),
           metadata: PaginationMetadataSchema,
         }),
       },
@@ -118,15 +119,15 @@ export const productRoutes = new Elysia({ prefix: "/products" })
     {
       requireAuth: true,
       requireOrg: true,
-      params: t.Object({
-        slug: t.String(),
+      params: z.object({
+        slug: z.string(),
       }),
-      query: t.Object({
-        excludeId: t.Optional(t.String()),
+      query: z.object({
+        excludeId: z.string().optional(),
       }),
       response: {
-        200: t.Object({
-          isAvailable: t.Boolean(),
+        200: z.object({
+          isAvailable: z.boolean(),
         }),
       },
       detail: {
@@ -153,8 +154,8 @@ export const productRoutes = new Elysia({ prefix: "/products" })
     {
       requireAuth: true,
       requireOrg: true,
-      params: t.Object({
-        id: t.String(),
+      params: z.object({
+        id: z.string(),
       }),
       response: {
         200: ProductSchema,
@@ -188,8 +189,8 @@ export const productRoutes = new Elysia({ prefix: "/products" })
     {
       requireAuth: true,
       requireOrg: true,
-      params: t.Object({
-        slug: t.String(),
+      params: z.object({
+        slug: z.string(),
       }),
       response: {
         200: ProductSchema,
@@ -236,16 +237,14 @@ export const productRoutes = new Elysia({ prefix: "/products" })
     {
       requireAuth: true,
       requireOrg: true,
-      params: t.Object({
-        id: t.String(),
+      params: z.object({
+        id: z.string(),
       }),
-      body: t.Partial(
-        t.Object({
-          name: t.String({ minLength: 1, maxLength: 255 }),
-          description: t.Union([t.String(), t.Null()]),
-          slug: t.String({ minLength: 1, maxLength: 255 }),
-        }),
-      ),
+      body: z.object({
+        name: z.string().min(1).max(255).optional(),
+        description: z.string().nullable().optional(),
+        slug: z.string().min(1).max(255).optional(),
+      }),
       response: {
         200: ProductSchema,
         403: ErrorSchema,
@@ -276,11 +275,11 @@ export const productRoutes = new Elysia({ prefix: "/products" })
     {
       requireAuth: true,
       requireOrg: true,
-      params: t.Object({
-        id: t.String(),
+      params: z.object({
+        id: z.string(),
       }),
       response: {
-        200: t.Void(),
+        200: z.void(),
         403: ErrorSchema,
         404: ErrorSchema,
       },
