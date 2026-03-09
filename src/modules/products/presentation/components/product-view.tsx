@@ -3,14 +3,17 @@
 import { useBreadcrumbOverride } from "@/shared/presentation/hooks/use-breadcrumbs";
 import { useProductQuery } from "../hooks/use-product-query";
 import { Button } from "@/shared/presentation/components/ui/button";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 import { Skeleton } from "@/shared/presentation/components/ui/skeleton";
 import { EditProductModal } from "./edit-product-modal";
+import { DeleteProductAlert } from "./delete-product-alert";
+import { useRouter } from "next/navigation";
 
 export function ProductView({ slug }: { slug: string }) {
   const { data: product, isLoading, error } = useProductQuery(slug);
+  const router = useRouter();
 
   useBreadcrumbOverride(`/products/${slug}`, product?.name);
 
@@ -97,12 +100,23 @@ export function ProductView({ slug }: { slug: string }) {
             Product Details
           </h1>
         </div>
-        <EditProductModal product={product}>
-          <Button variant="outline" size="sm">
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-        </EditProductModal>
+        <div className="flex items-center gap-2">
+          <EditProductModal product={product}>
+            <Button variant="outline" size="sm">
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Button>
+          </EditProductModal>
+          <DeleteProductAlert 
+            product={product} 
+            onDeleted={() => router.push("/products")}
+          >
+            <Button variant="outline" size="sm" className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          </DeleteProductAlert>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
