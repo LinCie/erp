@@ -3,10 +3,11 @@
 import { useBreadcrumbOverride } from "@/shared/presentation/hooks/use-breadcrumbs";
 import { useProductQuery } from "../hooks/use-product-query";
 import { Button } from "@/shared/presentation/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import Link from "next/link";
 
 import { Skeleton } from "@/shared/presentation/components/ui/skeleton";
+import { EditProductModal } from "./edit-product-modal";
 
 export function ProductView({ slug }: { slug: string }) {
   const { data: product, isLoading, error } = useProductQuery(slug);
@@ -84,16 +85,24 @@ export function ProductView({ slug }: { slug: string }) {
 
   return (
     <div className="flex flex-col gap-6 w-full mx-auto">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/products">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Link>
-        </Button>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Product Details
-        </h1>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/products">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Back</span>
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Product Details
+          </h1>
+        </div>
+        <EditProductModal product={product}>
+          <Button variant="outline" size="sm">
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
+        </EditProductModal>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

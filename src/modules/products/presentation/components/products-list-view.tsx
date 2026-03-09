@@ -47,6 +47,7 @@ import {
 import { ProductEntity as Product } from "../../domain/product.entity";
 import { useProductsQuery } from "../hooks/use-products-query";
 import { CreateProductModal } from "./create-product-modal";
+import { EditProductModal } from "./edit-product-modal";
 
 type ProductsListViewProps = {
   initialSearch?: string;
@@ -139,6 +140,7 @@ function createColumns(
                   View
                 </Link>
               </DropdownMenuItem>
+              <EditProductModal product={product} />
             </DropdownMenuContent>
           </DropdownMenu>
         );
