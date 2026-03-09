@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { AuthUIProvider } from "@daveyplate/better-auth-ui";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { ThemeProvider } from "next-themes";
 import { authClient } from "@/shared/presentation/libraries/auth/auth-client";
+import { TooltipProvider } from "@/shared/presentation/components/ui/tooltip";
 
 export function Providers({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -19,7 +21,14 @@ export function Providers({ children }: { children: ReactNode }) {
       }}
       Link={Link}
     >
-      {children}
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
+      </ThemeProvider>
     </AuthUIProvider>
   );
 }
