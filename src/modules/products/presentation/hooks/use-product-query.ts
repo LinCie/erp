@@ -3,10 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/shared/presentation/libraries/api-client";
 import { ProductEntity } from "../../domain/product.entity";
+import { productKeys } from "./product-keys";
 
 export function useProductQuery(slug: string) {
   return useQuery<ProductEntity>({
-    queryKey: ["product", slug],
+    queryKey: productKeys.detail(slug),
     queryFn: async ({ signal }) => {
       const response = await api.products.slug({ slug }).get({
         fetch: { signal },

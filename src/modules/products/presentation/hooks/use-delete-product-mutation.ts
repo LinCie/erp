@@ -3,9 +3,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/shared/presentation/libraries/api-client";
+import { productKeys } from "./product-keys";
 
 type DeleteProductInput = {
   id: string;
+  slug: string;
 };
 
 export function useDeleteProductMutation() {
@@ -23,9 +25,13 @@ export function useDeleteProductMutation() {
 
       return response.data;
     },
-    onSuccess: async () => {
+    onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: ["products"],
+        queryKey: productKeys.lists(),
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: productKeys.detail(variables.slug),
       });
 
       toast.success("Product deleted.");
