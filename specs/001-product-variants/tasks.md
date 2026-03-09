@@ -19,9 +19,9 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 [P] Create variants module directory structure in src/modules/variants/
-- [ ] T002 Configure Elysia backend dependencies for variants module
-- [ ] T003 [P] Configure frontend TanStack Form and Query dependencies
+- [X] T001 [P] Create variants module directory structure in src/modules/variants/
+- [X] T002 Configure Elysia backend dependencies for variants module
+- [X] T003 [P] Configure frontend TanStack Form and Query dependencies
 
 ---
 
@@ -33,17 +33,17 @@
 
 ### Database Foundation
 
-- [ ] T004 Create Kysely migration 001_add_variants_table.sql in database/migrations/
-- [ ] T005 Run migration and generate types with bun run db:codegen
+- [X] T004 Create Kysely migration add_variants_table.ts using bun db:migrate:create
+- [X] T005 Run migration and generate types with bun run db:codegen
 
 ### Domain Layer (Shared Types)
 
-- [ ] T006 [P] Create Variant domain entity in src/modules/variants/domain/variant.entity.ts
-- [ ] T007 [P] Create Variant application types in src/modules/variants/application/types/variant.types.ts
+- [X] T006 [P] Create Variant domain entity in src/modules/variants/domain/variant.entity.ts
+- [X] T007 [P] Create Variant application types in src/modules/variants/application/types/variant.types.ts
 
 ### Shared Schemas
 
-- [ ] T008 [P] Create Zod schemas in src/modules/variants/presentation/schemas/variant-schema.ts
+- [X] T008 [P] Create Zod schemas in src/modules/variants/presentation/schemas/variant-schema.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
