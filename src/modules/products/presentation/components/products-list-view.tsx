@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/presentation/components/ui/table";
+import { Skeleton } from "@/shared/presentation/components/ui/skeleton";
 import { ProductEntity as Product } from "../../domain/product.entity";
 import { useProductsQuery } from "../hooks/use-products-query";
 import { CreateProductModal } from "./create-product-modal";
@@ -152,14 +153,25 @@ export function ProductsListView() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  Loading products...
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 10 }).map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[150px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[120px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-full max-w-[250px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-8 w-8 rounded-md" />
+                  </TableCell>
+                </TableRow>
+              ))
             ) : error ? (
               <TableRow>
                 <TableCell
