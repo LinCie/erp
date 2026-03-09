@@ -13,6 +13,7 @@ import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/shared/presentation/components/ui/button";
 import { Input } from "@/shared/presentation/components/ui/input";
 import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -24,6 +25,16 @@ import {
 import { ProductEntity as Product } from "../../domain/product.entity";
 import { useProductsQuery } from "../hooks/use-products-query";
 import { CreateProductModal } from "./create-product-modal";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/presentation/components/ui/dropdown-menu";
+import { MoreHorizontal, Search } from "lucide-react";
 
 const columns: ColumnDef<Product>[] = [
   {
@@ -52,14 +63,49 @@ const columns: ColumnDef<Product>[] = [
     header: "Created",
     cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
   },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      const product = row.original;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/products/${product.slug}`}
+                className="cursor-pointer font-medium w-full group"
+                target="_blank"
+              >
+                <Search className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />{" "}
+                View
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
 ];
 
 export function ProductsListView() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 400);
-  const { data: products = [], isLoading, error } =
-    useProductsQuery(debouncedSearch);
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useProductsQuery(debouncedSearch);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
