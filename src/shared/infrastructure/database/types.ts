@@ -9,6 +9,8 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type Numeric = ColumnType<string, number | string, number | string>;
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Account {
@@ -88,6 +90,22 @@ export interface User {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface Variants {
+  basePrice: Generated<Numeric>;
+  costPrice: Numeric | null;
+  createdAt: Generated<Timestamp>;
+  createdBy: string | null;
+  currency: Generated<string>;
+  deletedAt: Timestamp | null;
+  id: Generated<string>;
+  isDefault: Generated<boolean>;
+  productId: string;
+  salePrice: Numeric | null;
+  sku: string;
+  updatedAt: Generated<Timestamp>;
+  updatedBy: string | null;
+}
+
 export interface Verification {
   createdAt: Generated<Timestamp>;
   expiresAt: Timestamp;
@@ -105,5 +123,6 @@ export interface DB {
   products: Products;
   session: Session;
   user: User;
+  variants: Variants;
   verification: Verification;
 }
