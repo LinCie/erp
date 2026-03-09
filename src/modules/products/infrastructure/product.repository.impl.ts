@@ -70,7 +70,8 @@ export class ProductRepositoryImpl implements ProductRepository {
       .where("deletedAt", "is", null);
 
     if (input.search) {
-      baseQuery = baseQuery.where("name", "ilike", `%${input.search}%`);
+      const escaped = input.search.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+      baseQuery = baseQuery.where("name", "ilike", `%${escaped}%`);
     }
 
     const [products, countResult] = await Promise.all([
