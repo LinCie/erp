@@ -23,6 +23,7 @@ import {
 } from "@/shared/presentation/components/ui/table";
 import { ProductEntity as Product } from "../../domain/product.entity";
 import { useProductsQuery } from "../hooks/use-products-query";
+import { CreateProductModal } from "./create-product-modal";
 
 const columns: ColumnDef<Product>[] = [
   {
@@ -74,12 +75,15 @@ export function ProductsListView() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Products</h1>
-        <Input
-          placeholder="Search products..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="max-w-sm"
-        />
+        <div className="flex items-center gap-3">
+          <Input
+            placeholder="Search products..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="max-w-sm"
+          />
+          <CreateProductModal />
+        </div>
       </div>
 
       <div className="rounded-md border">
