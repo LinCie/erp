@@ -1,6 +1,18 @@
 import type { ProductEntity } from "../../domain/product.entity";
 import type { PaginationMetadata } from "@/shared/application/types/pagination.type";
 
+export const PRODUCT_SORT_FIELDS = [
+  "name",
+  "slug",
+  "createdAt",
+  "updatedAt",
+] as const;
+
+export const PRODUCT_SORT_ORDERS = ["asc", "desc"] as const;
+
+export type ProductSortField = (typeof PRODUCT_SORT_FIELDS)[number];
+export type ProductSortOrder = (typeof PRODUCT_SORT_ORDERS)[number];
+
 export type CreateProductInput = {
   organizationId: string;
   name: string;
@@ -28,6 +40,8 @@ export type FindAllProductsInput = {
   page: number;
   limit: number;
   search?: string;
+  sortBy: ProductSortField;
+  sortOrder: ProductSortOrder;
 };
 
 export type FindAllProductsOutput = {

@@ -3,6 +3,10 @@ import { z } from "zod";
 import { ProductService } from "../application/product.service";
 import { ProductRepositoryImpl } from "../infrastructure/product.repository.impl";
 import { authPlugin } from "@/server/middlewares/auth-middleware";
+import {
+  PRODUCT_SORT_FIELDS,
+  PRODUCT_SORT_ORDERS,
+} from "../application/types/product.types";
 
 const productService = new ProductService(new ProductRepositoryImpl());
 
@@ -76,12 +80,16 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       const page = query.page ?? 1;
       const limit = query.limit ?? 10;
       const search = query.search ?? "";
+      const sortBy = query.sortBy ?? "createdAt";
+      const sortOrder = query.sortOrder ?? "desc";
 
       const result = await productService.findAll({
         organizationId: organization.id,
         page,
         limit,
         search,
+        sortBy,
+        sortOrder,
       });
       return result;
     },
@@ -92,6 +100,8 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         page: z.number().min(1).optional(),
         limit: z.number().min(1).max(100).optional(),
         search: z.string().optional(),
+        sortBy: z.enum(PRODUCT_SORT_FIELDS).optional(),
+        sortOrder: z.enum(PRODUCT_SORT_ORDERS).optional(),
       }),
       response: {
         200: z.object({

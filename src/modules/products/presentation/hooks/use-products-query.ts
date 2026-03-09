@@ -3,14 +3,30 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/shared/presentation/libraries/api-client";
 import { ProductEntity } from "../../domain/product.entity";
+import type {
+  ProductSortField,
+  ProductSortOrder,
+} from "../../application/types/product.types";
 
-export function useProductsQuery(search: string) {
+type UseProductsQueryInput = {
+  search: string;
+  sortBy: ProductSortField;
+  sortOrder: ProductSortOrder;
+};
+
+export function useProductsQuery({
+  search,
+  sortBy,
+  sortOrder,
+}: UseProductsQueryInput) {
   return useQuery<ProductEntity[]>({
-    queryKey: ["products", search],
+    queryKey: ["products", search, sortBy, sortOrder],
     queryFn: async ({ signal }) => {
       const response = await api.products.get({
         query: {
           search: search.trim() || undefined,
+          sortBy,
+          sortOrder,
         },
         fetch: {
           signal,

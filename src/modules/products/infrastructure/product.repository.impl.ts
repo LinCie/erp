@@ -76,7 +76,7 @@ export class ProductRepositoryImpl implements ProductRepository {
     const [products, countResult] = await Promise.all([
       baseQuery
         .selectAll()
-        .orderBy("createdAt", "desc")
+        .orderBy(input.sortBy, input.sortOrder)
         .limit(input.limit)
         .offset(offset)
         .execute(),
