@@ -13,9 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/presentation/components/ui/dialog";
-import {
-  DropdownMenuItem,
-} from "@/shared/presentation/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/shared/presentation/components/ui/dropdown-menu";
 import {
   Field,
   FieldDescription,
@@ -28,42 +26,13 @@ import {
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Textarea } from "@/shared/presentation/components/ui/textarea";
 import {
-  createProductSchema,
-  type CreateProductFormValues,
+  productFormSchema,
+  type ProductFormValues,
   productSlugSchema,
 } from "../schemas/create-product-schema";
 import { useUpdateProductMutation } from "../hooks/use-update-product-mutation";
-import { api } from "@/shared/presentation/libraries/api-client";
 import type { ProductEntity } from "../../domain/product.entity";
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-async function checkSlugAvailability(
-  slug: string,
-  excludeId: string,
-  signal: AbortSignal,
-) {
-  const response = await api.products["check-slug"]({ slug }).get({
-    query: { excludeId },
-    fetch: {
-      signal,
-    },
-  });
-
-  if (response.error) {
-    throw new Error("Could not validate slug. Please try again.");
-  }
-
-  return response.data.isAvailable;
-}
+import { generateSlug, checkSlugAvailability } from "../utils/product.utils";
 
 type EditProductModalProps = {
   product: ProductEntity;
@@ -80,9 +49,9 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
       name: product.name,
       slug: product.slug,
       description: product.description ?? "",
-    } as CreateProductFormValues,
+    } as ProductFormValues,
     validators: {
-      onSubmit: createProductSchema,
+      onSubmit: productFormSchema,
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);
@@ -130,9 +99,7 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
-          <DialogDescription>
-            Update the product details.
-          </DialogDescription>
+          <DialogDescription>Update the product details.</DialogDescription>
         </DialogHeader>
         <form
           onSubmit={(event) => {
@@ -198,8 +165,8 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
 
                     const isAvailable = await checkSlugAvailability(
                       slug,
-                      product.id,
                       signal,
+                      product.id,
                     );
 
                     return isAvailable ? undefined : "Slug is already taken";

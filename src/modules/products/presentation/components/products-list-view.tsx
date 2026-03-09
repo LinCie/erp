@@ -18,6 +18,15 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/shared/presentation/components/ui/button";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/shared/presentation/components/ui/pagination";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -58,6 +67,8 @@ type ProductsListViewProps = {
 
 const DEFAULT_SORT_BY: ProductSortField = "createdAt";
 const DEFAULT_SORT_ORDER: ProductSortOrder = "desc";
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
 
 function isSortField(value: string | null): value is ProductSortField {
   return (
@@ -170,6 +181,9 @@ export function ProductsListView({
   const sortBy = isSortField(rawSortBy) ? rawSortBy : initialSortBy;
   const sortOrder = isSortOrder(rawSortOrder) ? rawSortOrder : initialSortOrder;
 
+  const rawPage = searchParams.get("page");
+  const page = rawPage ? Math.max(1, parseInt(rawPage, 10) || 1) : DEFAULT_PAGE;
+
   useEffect(() => {
     const params = new URLSearchParams(searchParamsString);
     setSearch(params.get("search") ?? initialSearch);
@@ -197,6 +211,9 @@ export function ProductsListView({
       params.set("sortOrder", sortOrder);
     }
 
+    // Reset to page 1 when search changes
+    params.delete("page");
+
     const nextQuery = params.toString();
     const currentQuery = searchParamsString;
 
@@ -215,14 +232,19 @@ export function ProductsListView({
   ]);
 
   const {
-    data: products = [],
+    data: result,
     isLoading,
     error,
   } = useProductsQuery({
     search: debouncedSearch,
+    page,
+    limit: DEFAULT_LIMIT,
     sortBy,
     sortOrder,
   });
+
+  const products = result?.data ?? [];
+  const metadata = result?.metadata;
 
   const columns = createColumns(sortBy, sortOrder, (field) => {
     const params = new URLSearchParams(searchParamsString);
@@ -231,6 +253,7 @@ export function ProductsListView({
 
     params.set("sortBy", field);
     params.set("sortOrder", nextOrder);
+    params.delete("page");
 
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   });
@@ -241,6 +264,21 @@ export function ProductsListView({
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParamsString);
+
+    if (newPage <= 1) {
+      params.delete("page");
+    } else {
+      params.set("page", String(newPage));
+    }
+
+    const nextQuery = params.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -277,7 +315,7 @@ export function ProductsListView({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: 10 }).map((_, index) => (
+              Array.from({ length: DEFAULT_LIMIT }).map((_, index) => (
                 <TableRow key={index}>
                   <TableCell>
                     <Skeleton className="h-4 w-[150px]" />
@@ -331,6 +369,79 @@ export function ProductsListView({
           </TableBody>
         </Table>
       </div>
+
+      {metadata && metadata.totalPages > 1 ? (
+        <div className="flex items-center justify-between px-2">
+          <p className="text-sm text-muted-foreground">
+            Showing {(page - 1) * DEFAULT_LIMIT + 1}–
+            {Math.min(page * DEFAULT_LIMIT, metadata.total)} of {metadata.total}{" "}
+            products
+          </p>
+          <Pagination className="mx-0 w-auto justify-end">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(page - 1);
+                  }}
+                  aria-disabled={page <= 1}
+                  className={
+                    page <= 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+              {Array.from({ length: metadata.totalPages }, (_, i) => i + 1)
+                .filter((p) => {
+                  if (p === 1 || p === metadata.totalPages) return true;
+                  if (Math.abs(p - page) <= 1) return true;
+                  return false;
+                })
+                .reduce<(number | "ellipsis")[]>((acc, p, i, arr) => {
+                  if (i > 0 && p - (arr[i - 1] ?? 0) > 1) acc.push("ellipsis");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((item, i) =>
+                  item === "ellipsis" ? (
+                    <PaginationItem key={`ellipsis-${i}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={item}>
+                      <PaginationLink
+                        isActive={item === page}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(item);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {item}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ),
+                )}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(page + 1);
+                  }}
+                  aria-disabled={page >= metadata.totalPages}
+                  className={
+                    page >= metadata.totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      ) : null}
     </div>
   );
 }

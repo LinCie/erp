@@ -18,10 +18,10 @@ export const productDescriptionSchema = z
   .string()
   .max(500, "Description must be less than 500 characters");
 
-export const createProductSchema = z.object({
+export const productFormSchema = z.object({
   name: productNameSchema,
   slug: productSlugSchema,
   description: productDescriptionSchema,
 });
 
-export type CreateProductFormValues = z.infer<typeof createProductSchema>;
+export type ProductFormValues = z.infer<typeof productFormSchema>;

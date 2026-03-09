@@ -25,36 +25,12 @@ import {
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Textarea } from "@/shared/presentation/components/ui/textarea";
 import {
-  createProductSchema,
-  type CreateProductFormValues,
+  productFormSchema,
+  type ProductFormValues,
   productSlugSchema,
 } from "../schemas/create-product-schema";
 import { useCreateProductMutation } from "../hooks/use-create-product-mutation";
-import { api } from "@/shared/presentation/libraries/api-client";
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-async function checkSlugAvailability(slug: string, signal: AbortSignal) {
-  const response = await api.products["check-slug"]({ slug }).get({
-    fetch: {
-      signal,
-    },
-  });
-
-  if (response.error) {
-    throw new Error("Could not validate slug. Please try again.");
-  }
-
-  return response.data.isAvailable;
-}
+import { generateSlug, checkSlugAvailability } from "../utils/product.utils";
 
 export function CreateProductModal() {
   const [open, setOpen] = useState(false);
@@ -66,9 +42,9 @@ export function CreateProductModal() {
       name: "",
       slug: "",
       description: "",
-    } as CreateProductFormValues,
+    } as ProductFormValues,
     validators: {
-      onSubmit: createProductSchema,
+      onSubmit: productFormSchema,
     },
     onSubmit: async ({ value }) => {
       setSubmitError(null);

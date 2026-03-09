@@ -13,9 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/presentation/components/ui/alert-dialog";
-import {
-  DropdownMenuItem,
-} from "@/shared/presentation/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/shared/presentation/components/ui/dropdown-menu";
 import { useDeleteProductMutation } from "../hooks/use-delete-product-mutation";
 import type { ProductEntity } from "../../domain/product.entity";
 
@@ -25,7 +23,11 @@ type DeleteProductAlertProps = {
   onDeleted?: () => void;
 };
 
-export function DeleteProductAlert({ product, children, onDeleted }: DeleteProductAlertProps) {
+export function DeleteProductAlert({
+  product,
+  children,
+  onDeleted,
+}: DeleteProductAlertProps) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const deleteProductMutation = useDeleteProductMutation();
@@ -34,14 +36,17 @@ export function DeleteProductAlert({ product, children, onDeleted }: DeleteProdu
     setError(null);
 
     try {
-      await deleteProductMutation.mutateAsync({ id: product.id });
+      await deleteProductMutation.mutateAsync({
+        id: product.id,
+        slug: product.slug,
+      });
       setOpen(false);
       onDeleted?.();
     } catch (error) {
       setError(
         error instanceof Error
           ? error.message
-          : "Could not delete product. Please try again."
+          : "Could not delete product. Please try again.",
       );
     }
   };
@@ -72,8 +77,13 @@ export function DeleteProductAlert({ product, children, onDeleted }: DeleteProdu
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the product
-            <span className="font-semibold text-foreground"> {product.name}</span> and remove it from our servers.
+            This action cannot be undone. This will permanently delete the
+            product
+            <span className="font-semibold text-foreground">
+              {" "}
+              {product.name}
+            </span>{" "}
+            and remove it from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error ? (

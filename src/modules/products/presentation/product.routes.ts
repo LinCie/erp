@@ -97,8 +97,8 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       requireAuth: true,
       requireOrg: true,
       query: z.object({
-        page: z.number().min(1).optional(),
-        limit: z.number().min(1).max(100).optional(),
+        page: z.coerce.number().min(1).optional(),
+        limit: z.coerce.number().min(1).max(100).optional(),
         search: z.string().optional(),
         sortBy: z.enum(PRODUCT_SORT_FIELDS).optional(),
         sortOrder: z.enum(PRODUCT_SORT_ORDERS).optional(),
