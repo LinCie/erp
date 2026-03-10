@@ -57,10 +57,10 @@
 
 ### Backend Implementation
 
-- [ ] T009 Create Variant repository interface in src/modules/variants/application/variant.repository.ts
-- [ ] T010 Implement Variant repository in src/modules/variants/infrastructure/variant.repository.impl.ts (depends on T009)
-- [ ] T011 Implement Variant service in src/modules/variants/application/variant.service.ts with bulkCreate method (depends on T010)
-- [ ] T012 Create Variant API routes in src/modules/variants/presentation/variant.routes.ts with POST /products/:productId/variants and POST /products/:productId/variants/bulk endpoints (depends on T011)
+- [X] T009 Create Variant repository interface in src/modules/variants/application/variant.repository.ts
+- [X] T010 Implement Variant repository in src/modules/variants/infrastructure/variant.repository.impl.ts (depends on T009)
+- [X] T011 Implement Variant service in src/modules/variants/application/variant.service.ts with bulkCreate method (depends on T010)
+- [X] T012 Create Variant API routes in src/modules/variants/presentation/variant.routes.ts with POST /products/:productId/variants and POST /products/:productId/variants/bulk endpoints (depends on T011)
 
 ### Frontend Components
 
@@ -71,9 +71,9 @@
 
 ### Query Hooks
 
-- [ ] T017 [P] Create variant query key factory in src/modules/variants/presentation/hooks/variant-keys.ts
-- [ ] T018 [P] Create use-variants-query hook in src/modules/variants/presentation/hooks/use-variants-query.ts (depends on T017)
-- [ ] T019 [P] Create use-create-variant-mutation hook in src/modules/variants/presentation/hooks/use-create-variant-mutation.ts
+- [X] T017 [P] Create variant query key factory in src/modules/variants/presentation/hooks/variant-keys.ts
+- [X] T018 [P] Create use-variants-query hook in src/modules/variants/presentation/hooks/use-variants-query.ts (depends on T017)
+- [X] T019 [P] Create use-create-variant-mutation hook in src/modules/variants/presentation/hooks/use-create-variant-mutation.ts
 
 **Checkpoint**: User Story 1 complete - Users can create products with multiple variants in a single form
 
