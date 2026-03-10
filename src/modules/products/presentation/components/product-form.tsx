@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useForm } from "@tanstack/react-form";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/shared/presentation/components/ui/button";
@@ -14,6 +14,8 @@ import {
 } from "@/shared/presentation/components/ui/field";
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Textarea } from "@/shared/presentation/components/ui/textarea";
+import { Switch } from "@/shared/presentation/components/ui/switch";
+import { Label } from "@/shared/presentation/components/ui/label";
 import {
   type ProductFormValues,
   productSlugSchema,
@@ -48,6 +50,8 @@ export function ProductForm({
   isPending,
   submitLabel = "Create",
 }: ProductFormProps) {
+  const [showVariants, setShowVariants] = useState(false);
+
   const form = useForm({
     defaultValues: {
       name: "",
@@ -167,73 +171,96 @@ export function ProductForm({
       </FieldSet>
 
       {/* Variants Section */}
-      <form.Field name="variants" mode="array">
-        {(field) => {
-          const variantsValue = field.state.value as VariantFieldValues[];
+      <FieldSet>
+        <div className="flex items-center justify-between">
+          <FieldLegend>Variants</FieldLegend>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="custom-variants-toggle"
+              checked={showVariants}
+              onCheckedChange={(checked) => {
+                setShowVariants(checked);
+                if (!checked) {
+                  form.setFieldValue("variants", []);
+                }
+              }}
+              disabled={isPending}
+            />
+            <Label htmlFor="custom-variants-toggle" className="text-sm">
+              Add custom variants
+            </Label>
+          </div>
+        </div>
 
-          return (
-            <FieldSet>
-              <div className="flex items-center justify-between">
-                <FieldLegend>
-                  Variants{" "}
-                  <span className="text-muted-foreground text-sm font-normal">
-                    (optional)
-                  </span>
-                </FieldLegend>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isPending}
-                  onClick={() =>
-                    field.pushValue({
-                      ...DEFAULT_VARIANT,
-                      isDefault: variantsValue.length === 0,
-                    })
-                  }
-                >
-                  <Plus data-icon="inline-start" />
-                  Add Variant
-                </Button>
-              </div>
+        {!showVariants ? (
+          <p className="text-sm text-muted-foreground">
+            A default variant will be generated automatically with an
+            auto-generated SKU and $0.00 price.
+          </p>
+        ) : (
+          <form.Field name="variants" mode="array">
+            {(field) => {
+              const variantsValue = field.state.value as VariantFieldValues[];
 
-              {variantsValue.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No variants added. A default variant will be generated
-                  automatically.
-                </p>
-              ) : (
+              return (
                 <div className="flex flex-col gap-3">
-                  {variantsValue.map((_, index) => (
-                    <div key={index} className="relative">
-                      <form.Field name={`variants[${index}]`}>
-                        {(variantField) => (
-                          <VariantFormFields
-                            field={variantField}
-                            index={index}
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={isPending}
+                      onClick={() =>
+                        field.pushValue({
+                          ...DEFAULT_VARIANT,
+                          isDefault: variantsValue.length === 0,
+                        })
+                      }
+                    >
+                      <Plus data-icon="inline-start" />
+                      Add Variant
+                    </Button>
+                  </div>
+
+                  {variantsValue.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No variants added yet. Click &quot;Add Variant&quot; to
+                      get started, or toggle off to auto-generate a default.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {variantsValue.map((_, index) => (
+                        <div key={index} className="relative">
+                          <form.Field name={`variants[${index}]`}>
+                            {(variantField) => (
+                              <VariantFormFields
+                                field={variantField}
+                                index={index}
+                                disabled={isPending}
+                              />
+                            )}
+                          </form.Field>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-destructive"
                             disabled={isPending}
-                          />
-                        )}
-                      </form.Field>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-destructive"
-                        disabled={isPending}
-                        onClick={() => field.removeValue(index)}
-                        aria-label={`Remove variant ${index + 1}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                            onClick={() => field.removeValue(index)}
+                            aria-label={`Remove variant ${index + 1}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </FieldSet>
-          );
-        }}
-      </form.Field>
+              );
+            }}
+          </form.Field>
+        )}
+      </FieldSet>
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isPending || form.state.isValidating}>

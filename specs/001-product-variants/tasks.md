@@ -87,13 +87,13 @@
 
 ### Backend Implementation
 
-- [ ] T020 Add createDefaultVariant method to Variant service in src/modules/variants/application/variant.service.ts (depends on T011)
-- [ ] T021 Update product creation workflow to call default variant generation in src/modules/products/application/product.service.ts (depends on T020)
+- [x] T020 Add createDefaultVariant method to Variant service in src/modules/variants/application/variant.service.ts (depends on T011)
+- [x] T021 Update product creation workflow to call default variant generation in src/modules/products/application/product.service.ts (depends on T020)
 
 ### Frontend Components
 
-- [ ] T022 Update product form to conditionally show variants section based on user choice in src/modules/products/presentation/components/product-form.tsx (depends on T015)
-- [ ] T023 Add default variant display in product detail view in src/modules/products/presentation/components/product-detail-view.tsx
+- [x] T022 Update product form to conditionally show variants section based on user choice in src/modules/products/presentation/components/product-form.tsx (depends on T015)
+- [x] T023 Add default variant display in product detail view in src/modules/products/presentation/components/product-detail-view.tsx
 
 **Checkpoint**: User Story 2 complete - Products without variant data automatically get a default variant
 

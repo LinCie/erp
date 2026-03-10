@@ -15,9 +15,13 @@ import type {
   CheckSlugUniquenessInput,
   CheckSlugUniquenessOutput,
 } from "./types/product.types";
+import type { VariantService } from "@/modules/variants/application/variant.service";
 
 export class ProductService {
-  constructor(private readonly repository: ProductRepository) {}
+  constructor(
+    private readonly repository: ProductRepository,
+    private readonly variantService: VariantService,
+  ) {}
 
   async create(input: CreateProductInput): Promise<CreateProductOutput> {
     const { isAvailable } = await this.repository.checkSlugUniqueness({
@@ -29,7 +33,19 @@ export class ProductService {
       throw new Error("Slug is already taken");
     }
 
-    return this.repository.create(input);
+    const product = await this.repository.create(input);
+
+    // Auto-create variant(s): use provided variants or generate a default
+    if (input.variants && input.variants.length > 0) {
+      await this.variantService.bulkCreate({
+        productId: product.id,
+        variants: input.variants,
+      });
+    } else {
+      await this.variantService.createDefaultForProduct(product.id);
+    }
+
+    return product;
   }
 
   async findById(input: FindProductByIdInput): Promise<FindProductByIdOutput> {
