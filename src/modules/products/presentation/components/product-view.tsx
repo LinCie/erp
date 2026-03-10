@@ -5,11 +5,12 @@ import { useProductQuery } from "../hooks/use-product-query";
 import { Button } from "@/shared/presentation/components/ui/button";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
-
 import { Skeleton } from "@/shared/presentation/components/ui/skeleton";
 import { EditProductModal } from "./edit-product-modal";
 import { DeleteProductAlert } from "./delete-product-alert";
 import { useRouter } from "next/navigation";
+import { useVariantsQuery } from "@/modules/variants/presentation/hooks/use-variants-query";
+import { VariantListView } from "@/modules/variants/presentation/components/variant-list-view";
 
 export function ProductView({ slug }: { slug: string }) {
   const { data: product, isLoading, error } = useProductQuery(slug);
@@ -107,11 +108,15 @@ export function ProductView({ slug }: { slug: string }) {
               Edit
             </Button>
           </EditProductModal>
-          <DeleteProductAlert 
-            product={product} 
+          <DeleteProductAlert
+            product={product}
             onDeleted={() => router.push("/products")}
           >
-            <Button variant="outline" size="sm" className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </Button>
@@ -180,6 +185,24 @@ export function ProductView({ slug }: { slug: string }) {
           </div>
         </div>
       </div>
+
+      <VariantsSection productId={product.id} />
+    </div>
+  );
+}
+
+function VariantsSection({ productId }: { productId: string }) {
+  const { data, isLoading, error } = useVariantsQuery({ productId });
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h3 className="font-semibold text-lg">Variants</h3>
+      <VariantListView
+        productId={productId}
+        variants={data?.data}
+        isLoading={isLoading}
+        error={error}
+      />
     </div>
   );
 }

@@ -1,74 +1,48 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "@tanstack/react-form";
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/shared/presentation/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/shared/presentation/components/ui/dialog";
 import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSet,
-  FieldLegend,
-} from "@/shared/presentation/components/ui/field";
-import { Input } from "@/shared/presentation/components/ui/input";
-import { Textarea } from "@/shared/presentation/components/ui/textarea";
-import {
-  productFormSchema,
-  type ProductFormValues,
-  productSlugSchema,
-} from "../schemas/create-product-schema";
-import { useCreateProductMutation } from "../hooks/use-create-product-mutation";
-import { generateSlug, checkSlugAvailability } from "../utils/product.utils";
+  ProductForm,
+  type ProductWithVariantsFormValues,
+} from "./product-form";
+import { useCreateProductWithVariants } from "../hooks/use-create-product-with-variants";
 
 export function CreateProductModal() {
   const [open, setOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const createProductMutation = useCreateProductMutation();
-
-  const form = useForm({
-    defaultValues: {
-      name: "",
-      slug: "",
-      description: "",
-    } as ProductFormValues,
-    validators: {
-      onSubmit: productFormSchema,
-    },
-    onSubmit: async ({ value }) => {
-      setSubmitError(null);
-
-      try {
-        await createProductMutation.mutateAsync(value);
-        form.reset();
-        setOpen(false);
-      } catch (error) {
-        setSubmitError(
-          error instanceof Error
-            ? error.message
-            : "Could not create product. Please try again.",
-        );
-      }
-    },
-  });
+  const createMutation = useCreateProductWithVariants();
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
+    if (!nextOpen) setSubmitError(null);
+  };
 
-    if (!nextOpen) {
-      setSubmitError(null);
-      form.reset();
+  const handleSubmit = async (value: ProductWithVariantsFormValues) => {
+    setSubmitError(null);
+    try {
+      await createMutation.mutateAsync({
+        name: value.name,
+        slug: value.slug,
+        description: value.description,
+        variants: value.variants.length > 0 ? value.variants : undefined,
+      });
+      setOpen(false);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Could not create product. Please try again.",
+      );
     }
   };
 
@@ -80,153 +54,35 @@ export function CreateProductModal() {
           Create Product
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Product</DialogTitle>
           <DialogDescription>
-            Add a product to the active organization.
+            Add a product to the active organization. Optionally add variants
+            now or manage them later from the product detail page.
           </DialogDescription>
         </DialogHeader>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            form.handleSubmit();
-          }}
-          className="flex flex-col gap-6"
-        >
-          <FieldSet>
-            <FieldLegend>Product Details</FieldLegend>
-            <FieldGroup>
-              <form.Field name="name">
-                {(field) => (
-                  <Field data-invalid={field.state.meta.errors.length > 0}>
-                    <FieldLabel htmlFor={field.name}>Name *</FieldLabel>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(event) => {
-                        const nextValue = event.target.value;
-                        const previousGeneratedSlug = generateSlug(
-                          field.state.value,
-                        );
-                        const currentSlug = form.getFieldValue("slug");
 
-                        field.handleChange(nextValue);
+        {submitError ? (
+          <p className="text-sm text-destructive" role="alert">
+            {submitError}
+          </p>
+        ) : null}
 
-                        if (
-                          !currentSlug ||
-                          currentSlug === previousGeneratedSlug
-                        ) {
-                          form.setFieldValue("slug", generateSlug(nextValue));
-                        }
-                      }}
-                      aria-invalid={field.state.meta.errors.length > 0}
-                      placeholder="Premium Laptop"
-                      disabled={createProductMutation.isPending}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )}
-              </form.Field>
-
-              <form.Field
-                name="slug"
-                validators={{
-                  onChange: ({ value }) => {
-                    const result = productSlugSchema.safeParse(value.trim());
-                    return result.success
-                      ? undefined
-                      : result.error.issues[0]?.message;
-                  },
-                  onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: async ({ value, signal }) => {
-                    const slug = value.trim();
-
-                    if (!productSlugSchema.safeParse(slug).success) {
-                      return undefined;
-                    }
-
-                    const isAvailable = await checkSlugAvailability(
-                      slug,
-                      signal,
-                    );
-
-                    return isAvailable ? undefined : "Slug is already taken";
-                  },
-                }}
-              >
-                {(field) => (
-                  <Field data-invalid={field.state.meta.errors.length > 0}>
-                    <FieldLabel htmlFor={field.name}>Slug *</FieldLabel>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(event) => {
-                        field.handleChange(event.target.value);
-                      }}
-                      aria-invalid={field.state.meta.errors.length > 0}
-                      placeholder="premium-laptop"
-                      disabled={createProductMutation.isPending}
-                    />
-                    {field.state.meta.isValidating ? (
-                      <FieldDescription>
-                        Checking slug availability...
-                      </FieldDescription>
-                    ) : null}
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )}
-              </form.Field>
-
-              <form.Field name="description">
-                {(field) => (
-                  <Field data-invalid={field.state.meta.errors.length > 0}>
-                    <FieldLabel htmlFor={field.name}>Description</FieldLabel>
-                    <Textarea
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(event) =>
-                        field.handleChange(event.target.value)
-                      }
-                      aria-invalid={field.state.meta.errors.length > 0}
-                      placeholder="Short description for internal catalog and sales context."
-                      disabled={createProductMutation.isPending}
-                      rows={4}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )}
-              </form.Field>
-            </FieldGroup>
-          </FieldSet>
-
-          {submitError ? (
-            <p className="text-sm text-destructive" role="alert">
-              {submitError}
-            </p>
-          ) : null}
-
-          <DialogFooter showCloseButton>
-            <Button
-              type="submit"
-              disabled={
-                createProductMutation.isPending || form.state.isValidating
-              }
-            >
-              {createProductMutation.isPending || form.state.isValidating ? (
+        <ProductForm
+          onSubmit={handleSubmit}
+          isPending={createMutation.isPending}
+          submitLabel={
+            createMutation.isPending ? (
+              <>
                 <Loader2 className="animate-spin" data-icon="inline-start" />
-              ) : null}
-              Create Product
-            </Button>
-          </DialogFooter>
-        </form>
+                Creating…
+              </>
+            ) : (
+              "Create Product"
+            )
+          }
+        />
       </DialogContent>
     </Dialog>
   );

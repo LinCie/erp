@@ -1,4 +1,4 @@
-import type { VariantEntity } from "../domain/variant.entity";
+import type { VariantEntity } from "../../domain/variant.entity";
 
 export interface CreateVariantInput {
   productId: string;
@@ -8,6 +8,7 @@ export interface CreateVariantInput {
   costPrice?: number;
   currency?: string;
   isDefault?: boolean;
+  createdBy?: string;
 }
 
 export interface UpdateVariantInput {
@@ -17,6 +18,7 @@ export interface UpdateVariantInput {
   costPrice?: number;
   currency?: string;
   isDefault?: boolean;
+  updatedBy?: string;
 }
 
 export interface VariantFilters {

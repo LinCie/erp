@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { productRoutes } from "../modules/products/presentation/product.routes";
+import { variantRoutes } from "../modules/variants/presentation/variant.routes";
 import { auth } from "@/shared/presentation/libraries/auth/auth";
 
 const corsOrigin =
@@ -22,6 +23,7 @@ export const app = new Elysia({ prefix: "/api" })
     timestamp: new Date().toISOString(),
   }))
   .mount(auth.handler)
-  .use(productRoutes);
+  .use(productRoutes)
+  .use(variantRoutes);
 
 export type App = typeof app;
