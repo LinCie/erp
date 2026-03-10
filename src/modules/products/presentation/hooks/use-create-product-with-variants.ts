@@ -5,9 +5,6 @@ import { toast } from "sonner";
 import { api } from "@/shared/presentation/libraries/api-client";
 import { productKeys } from "../hooks/product-keys";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const variantApi = api as any;
-
 type VariantInput = {
   sku: string;
   basePrice: number;
@@ -29,40 +26,26 @@ export function useCreateProductWithVariants() {
 
   return useMutation({
     mutationFn: async (input: CreateProductWithVariantsInput) => {
-      // Step 1: Create the product
-      const productResponse = await api.products.post({
+      // Backend now handles variant creation (or auto-default generation)
+      // in a single POST /products call
+      const response = await api.products.post({
         name: input.name.trim(),
         slug: input.slug.trim(),
         description: input.description.trim() || null,
+        variants:
+          input.variants && input.variants.length > 0
+            ? input.variants
+            : undefined,
       });
 
-      if (productResponse.error) {
+      if (response.error) {
         throw new Error(
-          (productResponse.error.value as { error?: string })?.error ||
+          (response.error.value as { error?: string })?.error ||
             "Could not create product.",
         );
       }
 
-      const product = productResponse.data;
-
-      // Step 2: If variants were provided, bulk-create them
-      if (input.variants && input.variants.length > 0) {
-        const variantsResponse = await variantApi
-          .products({ productId: product!.id })
-          .variants.bulk.post({
-            variants: input.variants,
-          });
-
-        if (variantsResponse.error) {
-          // Product was created but variants failed — surface as error
-          throw new Error(
-            (variantsResponse.error.value as { error?: string })?.error ||
-              "Product created but variants could not be saved.",
-          );
-        }
-      }
-
-      return product;
+      return response.data;
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({

@@ -3,7 +3,7 @@
 import { useBreadcrumbOverride } from "@/shared/presentation/hooks/use-breadcrumbs";
 import { useProductQuery } from "../hooks/use-product-query";
 import { Button } from "@/shared/presentation/components/ui/button";
-import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Info, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "@/shared/presentation/components/ui/skeleton";
 import { EditProductModal } from "./edit-product-modal";
@@ -194,12 +194,29 @@ export function ProductView({ slug }: { slug: string }) {
 function VariantsSection({ productId }: { productId: string }) {
   const { data, isLoading, error } = useVariantsQuery({ productId });
 
+  const variants = data?.data;
+  const hasOnlyAutoDefault =
+    !isLoading &&
+    variants?.length === 1 &&
+    variants[0].isDefault &&
+    variants[0].sku.startsWith("AUTO-");
+
   return (
     <div className="flex flex-col gap-3">
       <h3 className="font-semibold text-lg">Variants</h3>
+      {hasOnlyAutoDefault && (
+        <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
+          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            This product has an auto-generated default variant. You can add
+            custom variants with specific SKUs and pricing from the management
+            section.
+          </p>
+        </div>
+      )}
       <VariantListView
         productId={productId}
-        variants={data?.data}
+        variants={variants}
         isLoading={isLoading}
         error={error}
       />

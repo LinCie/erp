@@ -1,4 +1,5 @@
 import type { ProductEntity } from "../../domain/product.entity";
+import type { CreateVariantInput } from "@/modules/variants/application/types/variant.types";
 import type { PaginationMetadata } from "@/shared/application/types/pagination.type";
 
 export const PRODUCT_SORT_FIELDS = [
@@ -18,6 +19,8 @@ export type CreateProductInput = {
   name: string;
   description: string | null;
   slug: string;
+  /** Optional variants to create alongside the product. If empty/absent, a default variant is auto-generated. */
+  variants?: Array<Omit<CreateVariantInput, "productId">>;
 };
 
 export type CreateProductOutput = ProductEntity;

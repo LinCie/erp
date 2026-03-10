@@ -8,6 +8,7 @@ import type {
   SkuAvailabilityResult,
 } from "./types/variant.types";
 import type { VariantEntity } from "../domain/variant.entity";
+import { createDefaultVariant } from "../domain/variant.entity";
 
 export class VariantService {
   constructor(private readonly repository: VariantRepository) {}
@@ -73,5 +74,20 @@ export class VariantService {
     excludeId?: string,
   ): Promise<SkuAvailabilityResult> {
     return this.repository.checkSkuAvailability(sku, excludeId);
+  }
+
+  /**
+   * Creates a default variant for a product when no variants are provided.
+   * Uses auto-generated SKU pattern: AUTO-{productId prefix}-{timestamp}
+   */
+  async createDefaultForProduct(productId: string): Promise<VariantEntity> {
+    const defaults = createDefaultVariant(productId);
+    return this.repository.create({
+      productId: defaults.productId,
+      sku: defaults.sku,
+      basePrice: defaults.basePrice,
+      currency: defaults.currency,
+      isDefault: defaults.isDefault,
+    });
   }
 }

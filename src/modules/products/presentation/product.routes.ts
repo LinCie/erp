@@ -2,13 +2,18 @@ import { Elysia } from "elysia";
 import { z } from "zod";
 import { ProductService } from "../application/product.service";
 import { ProductRepositoryImpl } from "../infrastructure/product.repository.impl";
+import { VariantService } from "@/modules/variants/application/variant.service";
+import { VariantRepositoryImpl } from "@/modules/variants/infrastructure/variant.repository.impl";
 import { authPlugin } from "@/server/middlewares/auth-middleware";
 import {
   PRODUCT_SORT_FIELDS,
   PRODUCT_SORT_ORDERS,
 } from "../application/types/product.types";
 
-const productService = new ProductService(new ProductRepositoryImpl());
+const productService = new ProductService(
+  new ProductRepositoryImpl(),
+  new VariantService(new VariantRepositoryImpl()),
+);
 
 const ProductSchema = z.object({
   id: z.string(),
@@ -43,6 +48,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
           description: body.description ?? null,
           slug: body.slug,
           organizationId: organization.id,
+          variants:
+            body.variants && body.variants.length > 0
+              ? body.variants
+              : undefined,
         });
 
         return product;
@@ -63,6 +72,18 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         name: z.string().min(1).max(255),
         description: z.string().nullable(),
         slug: z.string().min(1).max(255),
+        variants: z
+          .array(
+            z.object({
+              sku: z.string().min(3).max(50),
+              basePrice: z.number().min(0),
+              salePrice: z.number().min(0).optional(),
+              costPrice: z.number().min(0).optional(),
+              currency: z.string().length(3).optional(),
+              isDefault: z.boolean().optional(),
+            }),
+          )
+          .optional(),
       }),
       response: {
         200: ProductSchema,
