@@ -19,9 +19,9 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [X] T001 [P] Create variants module directory structure in src/modules/variants/
-- [X] T002 Configure Elysia backend dependencies for variants module
-- [X] T003 [P] Configure frontend TanStack Form and Query dependencies
+- [x] T001 [P] Create variants module directory structure in src/modules/variants/
+- [x] T002 Configure Elysia backend dependencies for variants module
+- [x] T003 [P] Configure frontend TanStack Form and Query dependencies
 
 ---
 
@@ -33,17 +33,17 @@
 
 ### Database Foundation
 
-- [X] T004 Create Kysely migration add_variants_table.ts using bun db:migrate:create
-- [X] T005 Run migration and generate types with bun run db:codegen
+- [x] T004 Create Kysely migration add_variants_table.ts using bun db:migrate:create
+- [x] T005 Run migration and generate types with bun run db:codegen
 
 ### Domain Layer (Shared Types)
 
-- [X] T006 [P] Create Variant domain entity in src/modules/variants/domain/variant.entity.ts
-- [X] T007 [P] Create Variant application types in src/modules/variants/application/types/variant.types.ts
+- [x] T006 [P] Create Variant domain entity in src/modules/variants/domain/variant.entity.ts
+- [x] T007 [P] Create Variant application types in src/modules/variants/application/types/variant.types.ts
 
 ### Shared Schemas
 
-- [X] T008 [P] Create Zod schemas in src/modules/variants/presentation/schemas/variant-schema.ts
+- [x] T008 [P] Create Zod schemas in src/modules/variants/presentation/schemas/variant-schema.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -57,23 +57,23 @@
 
 ### Backend Implementation
 
-- [X] T009 Create Variant repository interface in src/modules/variants/application/variant.repository.ts
-- [X] T010 Implement Variant repository in src/modules/variants/infrastructure/variant.repository.impl.ts (depends on T009)
-- [X] T011 Implement Variant service in src/modules/variants/application/variant.service.ts with bulkCreate method (depends on T010)
-- [X] T012 Create Variant API routes in src/modules/variants/presentation/variant.routes.ts with POST /products/:productId/variants and POST /products/:productId/variants/bulk endpoints (depends on T011)
+- [x] T009 Create Variant repository interface in src/modules/variants/application/variant.repository.ts
+- [x] T010 Implement Variant repository in src/modules/variants/infrastructure/variant.repository.impl.ts (depends on T009)
+- [x] T011 Implement Variant service in src/modules/variants/application/variant.service.ts with bulkCreate method (depends on T010)
+- [x] T012 Create Variant API routes in src/modules/variants/presentation/variant.routes.ts with POST /products/:productId/variants and POST /products/:productId/variants/bulk endpoints (depends on T011)
 
 ### Frontend Components
 
-- [ ] T013 [P] Create variant form fields component in src/modules/variants/presentation/components/variant-form-fields.tsx
-- [ ] T014 [P] Create variant list view component in src/modules/variants/presentation/components/variant-list-view.tsx
-- [ ] T015 Update product form to include variants array field in src/modules/products/presentation/components/product-form.tsx using TanStack Form mode="array" (depends on T013)
-- [ ] T016 Update product creation page to handle variants submission in src/modules/products/presentation/hooks/use-create-product-with-variants.ts (depends on T015)
+- [x] T013 [P] Create variant form fields component in src/modules/variants/presentation/components/variant-form-fields.tsx
+- [x] T014 [P] Create variant list view component in src/modules/variants/presentation/components/variant-list-view.tsx
+- [x] T015 Update product form to include variants array field in src/modules/products/presentation/components/product-form.tsx using TanStack Form mode="array" (depends on T013)
+- [x] T016 Update product creation page to handle variants submission in src/modules/products/presentation/hooks/use-create-product-with-variants.ts (depends on T015)
 
 ### Query Hooks
 
-- [X] T017 [P] Create variant query key factory in src/modules/variants/presentation/hooks/variant-keys.ts
-- [X] T018 [P] Create use-variants-query hook in src/modules/variants/presentation/hooks/use-variants-query.ts (depends on T017)
-- [X] T019 [P] Create use-create-variant-mutation hook in src/modules/variants/presentation/hooks/use-create-variant-mutation.ts
+- [x] T017 [P] Create variant query key factory in src/modules/variants/presentation/hooks/variant-keys.ts
+- [x] T018 [P] Create use-variants-query hook in src/modules/variants/presentation/hooks/use-variants-query.ts (depends on T017)
+- [x] T019 [P] Create use-create-variant-mutation hook in src/modules/variants/presentation/hooks/use-create-variant-mutation.ts
 
 **Checkpoint**: User Story 1 complete - Users can create products with multiple variants in a single form
 
@@ -302,6 +302,7 @@ With multiple developers:
 **Total Tasks**: 47
 
 **Task Count by User Story**:
+
 - Setup (Phase 1): 3 tasks
 - Foundational (Phase 2): 5 tasks
 - User Story 1 (P1): 11 tasks
@@ -311,6 +312,7 @@ With multiple developers:
 - Polish (Phase 7): 11 tasks
 
 **Parallel Opportunities**:
+
 - 3 Setup tasks can run in parallel
 - 5 Foundational tasks can run in parallel
 - Multiple developers can work on US1/US2 simultaneously after Foundational
