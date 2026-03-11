@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { api } from "@/shared/presentation/libraries/api-client";
 import { productKeys } from "./product-keys";
 
@@ -34,8 +33,6 @@ export function usePermanentDeleteProductMutation() {
       await queryClient.invalidateQueries({
         queryKey: productKeys.lists(),
       });
-
-      toast.success("Product permanently deleted.");
     },
   });
 }

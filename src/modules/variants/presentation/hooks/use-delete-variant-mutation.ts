@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { api } from "@/shared/presentation/libraries/api-client";
 import { variantKeys } from "./variant-keys";
 import type { VariantEntity } from "../../domain/variant.entity";
@@ -51,26 +50,19 @@ export function useDeleteVariantMutation(productId: string) {
       return { previous };
     },
 
-    onError: (error: Error, _variantId, context) => {
-      // Roll back to the previous cache state on failure
+    onError: (_error: Error, _variantId, context) => {
       if (context?.previous) {
         queryClient.setQueryData(
           variantKeys.list(productId),
           context.previous,
         );
       }
-      toast.error(error.message);
     },
 
     onSettled: async () => {
-      // Always refetch to ensure the cache matches the server
       await queryClient.invalidateQueries({
         queryKey: variantKeys.list(productId),
       });
-    },
-
-    onSuccess: () => {
-      toast.success("Variant deleted.");
     },
   });
 }

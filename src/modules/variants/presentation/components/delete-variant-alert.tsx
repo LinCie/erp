@@ -13,6 +13,7 @@ import {
 } from "@/shared/presentation/components/ui/alert-dialog";
 import { Button } from "@/shared/presentation/components/ui/button";
 import { Trash2Icon } from "lucide-react";
+import { toast } from "sonner";
 import { useDeleteVariantMutation } from "../hooks/use-delete-variant-mutation";
 import type { VariantEntity } from "../../domain/variant.entity";
 
@@ -23,6 +24,15 @@ type DeleteVariantAlertProps = {
 
 export function DeleteVariantAlert({ productId, variant }: DeleteVariantAlertProps) {
   const deleteMutation = useDeleteVariantMutation(productId);
+
+  const handleDelete = () => {
+    toast.promise(deleteMutation.mutateAsync(variant.id), {
+      loading: `Deleting variant "${variant.sku}"...`,
+      success: "Variant deleted successfully",
+      error: (err) =>
+        err instanceof Error ? err.message : "Could not delete variant",
+    });
+  };
 
   return (
     <AlertDialog>
@@ -41,9 +51,11 @@ export function DeleteVariantAlert({ productId, variant }: DeleteVariantAlertPro
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={deleteMutation.isPending}>
+            Cancel
+          </AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => deleteMutation.mutate(variant.id)}
+            onClick={handleDelete}
             disabled={deleteMutation.isPending}
             variant="destructive"
           >

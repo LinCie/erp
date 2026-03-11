@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Loader2, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,36 +30,30 @@ export function RestoreProductAlert({
   onRestored,
 }: RestoreProductAlertProps) {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const restoreProductMutation = useRestoreProductMutation();
 
-  const handleRestore = async () => {
-    setError(null);
-
-    try {
-      await restoreProductMutation.mutateAsync({
+  const handleRestore = () => {
+    toast.promise(
+      restoreProductMutation.mutateAsync({
         id: product.id,
-      });
-      setOpen(false);
-      onRestored?.();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Could not restore product. Please try again.",
-      );
-    }
-  };
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setError(null);
-    }
+      }),
+      {
+        loading: `Restoring "${product.name}"...`,
+        success: () => {
+          setOpen(false);
+          onRestored?.();
+          return "Product restored successfully";
+        },
+        error: (err) =>
+          err instanceof Error
+            ? err.message
+            : "Could not restore product. Please try again.",
+      },
+    );
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         {children ? (
           <div onClick={() => setOpen(true)}>{children}</div>
@@ -84,11 +79,6 @@ export function RestoreProductAlert({
             and make it visible in your products list again.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {error ? (
-          <p className="text-sm text-destructive mt-2" role="alert">
-            {error}
-          </p>
-        ) : null}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={restoreProductMutation.isPending}>
             Cancel

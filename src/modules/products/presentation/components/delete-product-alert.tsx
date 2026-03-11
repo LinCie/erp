@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,37 +30,31 @@ export function DeleteProductAlert({
   onDeleted,
 }: DeleteProductAlertProps) {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const deleteProductMutation = useDeleteProductMutation();
 
-  const handleDelete = async () => {
-    setError(null);
-
-    try {
-      await deleteProductMutation.mutateAsync({
+  const handleDelete = () => {
+    toast.promise(
+      deleteProductMutation.mutateAsync({
         id: product.id,
         slug: product.slug,
-      });
-      setOpen(false);
-      onDeleted?.();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Could not delete product. Please try again.",
-      );
-    }
-  };
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setError(null);
-    }
+      }),
+      {
+        loading: `Deleting "${product.name}"...`,
+        success: () => {
+          setOpen(false);
+          onDeleted?.();
+          return "Product deleted successfully";
+        },
+        error: (err) =>
+          err instanceof Error
+            ? err.message
+            : "Could not delete product. Please try again.",
+      },
+    );
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         {children ? (
           <div onClick={() => setOpen(true)}>{children}</div>
@@ -86,11 +81,6 @@ export function DeleteProductAlert({
             and remove it from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {error ? (
-          <p className="text-sm text-destructive mt-2" role="alert">
-            {error}
-          </p>
-        ) : null}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={deleteProductMutation.isPending}>
             Cancel

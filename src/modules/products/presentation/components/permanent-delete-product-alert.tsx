@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,37 +30,31 @@ export function PermanentDeleteProductAlert({
   onDeleted,
 }: PermanentDeleteProductAlertProps) {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const permanentDeleteProductMutation = usePermanentDeleteProductMutation();
 
-  const handleDelete = async () => {
-    setError(null);
-
-    try {
-      await permanentDeleteProductMutation.mutateAsync({
+  const handleDelete = () => {
+    toast.promise(
+      permanentDeleteProductMutation.mutateAsync({
         id: product.id,
         organizationId: product.organizationId,
-      });
-      setOpen(false);
-      onDeleted?.();
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Could not permanently delete product. Please try again.",
-      );
-    }
-  };
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setError(null);
-    }
+      }),
+      {
+        loading: `Permanently deleting "${product.name}"...`,
+        success: () => {
+          setOpen(false);
+          onDeleted?.();
+          return "Product permanently deleted";
+        },
+        error: (err) =>
+          err instanceof Error
+            ? err.message
+            : "Could not permanently delete product. Please try again.",
+      },
+    );
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         {children ? (
           <div onClick={() => setOpen(true)}>{children}</div>
@@ -87,11 +82,6 @@ export function PermanentDeleteProductAlert({
             recover this product.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {error ? (
-          <p className="text-sm text-destructive mt-2" role="alert">
-            {error}
-          </p>
-        ) : null}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={permanentDeleteProductMutation.isPending}>
             Cancel
