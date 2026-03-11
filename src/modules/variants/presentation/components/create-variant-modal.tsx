@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useStore } from "@tanstack/react-store";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +21,11 @@ import {
 } from "@/shared/presentation/components/ui/field";
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Label } from "@/shared/presentation/components/ui/label";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, Loader2Icon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
 import { useCreateVariantMutation } from "../hooks/use-create-variant-mutation";
 import { createVariantSchema } from "../schemas/variant-schema";
+import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
+import { useCheckSkuQuery } from "../hooks/use-check-sku-query";
 
 type CreateVariantModalProps = {
   productId: string;
@@ -58,6 +61,22 @@ export function CreateVariantModal({ productId }: CreateVariantModalProps) {
       }
     },
   });
+
+  // Subscribe to the raw SKU value from the form store, then debounce 500ms
+  const rawSku = useStore(form.store, (state) => state.values.sku);
+  const debouncedSku = useDebouncedValue(rawSku, 500);
+
+  const skuCheck = useCheckSkuQuery({
+    sku: debouncedSku,
+    productId,
+    // Don't fire if the SKU hasn't settled or is below min length
+    enabled: isOpen && debouncedSku.length >= 3,
+  });
+
+  const skuIsChecking =
+    rawSku !== debouncedSku || (skuCheck.isFetching && !skuCheck.isError);
+  const skuTaken =
+    !skuIsChecking && skuCheck.data !== undefined && !skuCheck.data.available;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -98,15 +117,55 @@ export function CreateVariantModal({ productId }: CreateVariantModalProps) {
               {(field) => (
                 <Field>
                   <FieldLabel htmlFor="sku">SKU *</FieldLabel>
-                  <Input
-                    id="sku"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    placeholder="PROD-001"
-                    disabled={createMutation.isPending}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="sku"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      placeholder="PROD-001"
+                      disabled={createMutation.isPending}
+                      className={
+                        skuTaken
+                          ? "border-destructive pr-8 focus-visible:ring-destructive"
+                          : skuCheck.data?.available
+                            ? "border-green-500 pr-8 focus-visible:ring-green-500"
+                            : "pr-8"
+                      }
+                    />
+                    {/* SKU availability indicator */}
+                    {field.state.value.length >= 3 && (
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        {skuIsChecking ? (
+                          <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                        ) : skuTaken ? (
+                          <XCircleIcon className="size-4 text-destructive" />
+                        ) : skuCheck.data?.available ? (
+                          <CheckCircle2Icon className="size-4 text-green-500" />
+                        ) : null}
+                      </span>
+                    )}
+                  </div>
+                  {/* SKU format errors from Zod */}
                   <FieldError errors={field.state.meta.errors} />
+                  {/* SKU uniqueness error */}
+                  {skuTaken && !field.state.meta.errors.length && (
+                    <p className="text-sm font-medium text-destructive">
+                      This SKU is already in use by another variant.
+                    </p>
+                  )}
+                  {/* Checking hint */}
+                  {skuIsChecking && field.state.value.length >= 3 && (
+                    <p className="text-xs text-muted-foreground">
+                      Checking availability…
+                    </p>
+                  )}
+                  {/* Available confirmation */}
+                  {!skuIsChecking &&
+                    skuCheck.data?.available &&
+                    field.state.value.length >= 3 && (
+                      <p className="text-xs text-green-600">SKU is available.</p>
+                    )}
                 </Field>
               )}
             </form.Field>
@@ -219,7 +278,10 @@ export function CreateVariantModal({ productId }: CreateVariantModalProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
+            <Button
+              type="submit"
+              disabled={createMutation.isPending || skuTaken || skuIsChecking}
+            >
               {createMutation.isPending ? "Creating..." : "Create Variant"}
             </Button>
           </DialogFooter>

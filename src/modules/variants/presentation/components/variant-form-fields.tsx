@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Field,
   FieldError,
@@ -8,6 +9,9 @@ import {
 } from "@/shared/presentation/components/ui/field";
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Label } from "@/shared/presentation/components/ui/label";
+import { Loader2Icon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
+import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
+import { useCheckSkuQuery } from "../hooks/use-check-sku-query";
 
 export type VariantFieldValues = {
   sku: string;
@@ -28,12 +32,18 @@ type VariantFormFieldsProps = {
   field: VariantFieldApi;
   index: number;
   disabled?: boolean;
+  /**
+   * Product ID used to scope the SKU availability check.
+   * Required for live SKU uniqueness validation.
+   */
+  productId?: string;
 };
 
 export function VariantFormFields({
   field,
   index,
   disabled,
+  productId,
 }: VariantFormFieldsProps) {
   const value = field.state.value as VariantFieldValues;
 
@@ -44,6 +54,25 @@ export function VariantFormFields({
     field.handleChange({ ...value, [key]: newValue } as VariantFieldValues);
   };
 
+  // Local state to track the raw SKU input (for debouncing)
+  const [rawSku, setRawSku] = useState(value.sku);
+  const debouncedSku = useDebouncedValue(rawSku, 500);
+
+  const skuCheck = useCheckSkuQuery({
+    sku: debouncedSku,
+    productId: productId ?? "",
+    enabled: Boolean(productId) && debouncedSku.length >= 3,
+  });
+
+  const skuIsChecking =
+    Boolean(productId) &&
+    (rawSku !== debouncedSku || (skuCheck.isFetching && !skuCheck.isError));
+  const skuTaken =
+    Boolean(productId) &&
+    !skuIsChecking &&
+    skuCheck.data !== undefined &&
+    !skuCheck.data.available;
+
   return (
     <div className="rounded-lg border p-4 flex flex-col gap-4">
       <p className="text-sm font-medium text-muted-foreground">
@@ -53,15 +82,56 @@ export function VariantFormFields({
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor={`variant-${index}-sku`}>SKU *</FieldLabel>
-          <Input
-            id={`variant-${index}-sku`}
-            value={value.sku}
-            onChange={(e) => handleChange("sku", e.target.value)}
-            onBlur={field.handleBlur}
-            placeholder="PROD-001"
-            disabled={disabled}
-          />
+          <div className="relative">
+            <Input
+              id={`variant-${index}-sku`}
+              value={value.sku}
+              onChange={(e) => {
+                const newSku = e.target.value;
+                handleChange("sku", newSku);
+                setRawSku(newSku);
+              }}
+              onBlur={field.handleBlur}
+              placeholder="PROD-001"
+              disabled={disabled}
+              className={
+                skuTaken
+                  ? "border-destructive pr-8 focus-visible:ring-destructive"
+                  : productId && skuCheck.data?.available && debouncedSku.length >= 3
+                    ? "border-green-500 pr-8 focus-visible:ring-green-500"
+                    : "pr-8"
+              }
+            />
+            {/* SKU availability indicator */}
+            {productId && value.sku.length >= 3 && (
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                {skuIsChecking ? (
+                  <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                ) : skuTaken ? (
+                  <XCircleIcon className="size-4 text-destructive" />
+                ) : skuCheck.data?.available ? (
+                  <CheckCircle2Icon className="size-4 text-green-500" />
+                ) : null}
+              </span>
+            )}
+          </div>
           <FieldError errors={[]} />
+          {skuTaken && (
+            <p className="text-sm font-medium text-destructive">
+              This SKU is already in use by another variant.
+            </p>
+          )}
+          {productId && skuIsChecking && value.sku.length >= 3 && (
+            <p className="text-xs text-muted-foreground">
+              Checking availability…
+            </p>
+          )}
+          {productId &&
+            !skuIsChecking &&
+            skuCheck.data?.available &&
+            debouncedSku.length >= 3 && (
+              <p className="text-xs text-green-600">SKU is available.</p>
+            )}
         </Field>
 
         <Field>

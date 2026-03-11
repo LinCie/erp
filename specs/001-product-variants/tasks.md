@@ -135,14 +135,14 @@
 
 ### Backend Implementation
 
-- [ ] T033 Add SKU availability check method to Variant repository in src/modules/variants/infrastructure/variant.repository.impl.ts (depends on T010)
-- [ ] T034 Add SKU validation to create and update methods in Variant service in src/modules/variants/application/variant.service.ts (depends on T033)
-- [ ] T035 Add check-sku endpoint to Variant API routes in src/modules/variants/presentation/variant.routes.ts (depends on T034)
+- [X] T033 Add SKU availability check method to Variant repository in src/modules/variants/infrastructure/variant.repository.impl.ts (depends on T010)
+- [X] T034 Add SKU validation to create and update methods in Variant service in src/modules/variants/application/variant.service.ts (depends on T033)
+- [X] T035 Add check-sku endpoint to Variant API routes in src/modules/variants/presentation/variant.routes.ts (depends on T034)
 
 ### Frontend Implementation
 
-- [ ] T036 Add SKU availability check with debouncing (500ms) in variant form fields in src/modules/variants/presentation/components/variant-form-fields.tsx
-- [ ] T037 Display SKU conflict errors with clear messaging in variant form components
+- [X] T036 Add SKU availability check with debouncing (500ms) in variant form fields in src/modules/variants/presentation/components/variant-form-fields.tsx
+- [X] T037 Display SKU conflict errors with clear messaging in variant form components
 
 **Checkpoint**: User Story 4 complete - SKU uniqueness enforced across all variants
 

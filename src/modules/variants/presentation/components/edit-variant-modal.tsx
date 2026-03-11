@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useStore } from "@tanstack/react-store";
 import {
   Dialog,
   DialogContent,
@@ -20,10 +21,12 @@ import {
 } from "@/shared/presentation/components/ui/field";
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Label } from "@/shared/presentation/components/ui/label";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, Loader2Icon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
 import { useUpdateVariantMutation } from "../hooks/use-update-variant-mutation";
 import type { VariantEntity } from "../../domain/variant.entity";
 import { updateVariantSchema } from "../schemas/variant-schema";
+import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
+import { useCheckSkuQuery } from "../hooks/use-check-sku-query";
 
 type EditVariantModalProps = {
   productId: string;
@@ -58,6 +61,33 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
       setIsOpen(false);
     },
   });
+
+  // Subscribe to the raw SKU value from the form store, then debounce 500ms
+  const rawSku = useStore(form.store, (state) => state.values.sku);
+  const debouncedSku = useDebouncedValue(rawSku, 500);
+
+  // Exclude the current variant from the uniqueness check (editing its own SKU is fine)
+  const skuCheck = useCheckSkuQuery({
+    sku: debouncedSku,
+    excludeId: variant.id,
+    productId,
+    enabled:
+      isOpen &&
+      (debouncedSku ?? "").length >= 3 &&
+      debouncedSku !== variant.sku,
+  });
+
+  // While the user is still typing (raw differs from debounced), show checking state
+  const skuIsChecking =
+    rawSku !== debouncedSku || (skuCheck.isFetching && !skuCheck.isError);
+
+  // SKU is the same as the original — always valid (no need to check)
+  const skuUnchanged = rawSku === variant.sku;
+  const skuTaken =
+    !skuUnchanged &&
+    !skuIsChecking &&
+    skuCheck.data !== undefined &&
+    !skuCheck.data.available;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -98,15 +128,58 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
               {(field) => (
                 <Field>
                   <FieldLabel htmlFor="sku">SKU *</FieldLabel>
-                  <Input
-                    id="sku"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    placeholder="PROD-001"
-                    disabled={updateMutation.isPending}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="sku"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                      placeholder="PROD-001"
+                      disabled={updateMutation.isPending}
+                      className={
+                        skuTaken
+                          ? "border-destructive pr-8 focus-visible:ring-destructive"
+                          : !skuUnchanged && skuCheck.data?.available
+                            ? "border-green-500 pr-8 focus-visible:ring-green-500"
+                            : "pr-8"
+                      }
+                    />
+                    {/* SKU availability indicator — only show when SKU has changed */}
+                    {!skuUnchanged && (field.state.value ?? "").length >= 3 && (
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                        {skuIsChecking ? (
+                          <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                        ) : skuTaken ? (
+                          <XCircleIcon className="size-4 text-destructive" />
+                        ) : skuCheck.data?.available ? (
+                          <CheckCircle2Icon className="size-4 text-green-500" />
+                        ) : null}
+                      </span>
+                    )}
+                  </div>
+                  {/* Zod format errors */}
                   <FieldError errors={field.state.meta.errors} />
+                  {/* Uniqueness conflict error */}
+                  {skuTaken && !field.state.meta.errors.length && (
+                    <p className="text-sm font-medium text-destructive">
+                      This SKU is already in use by another variant.
+                    </p>
+                  )}
+                  {/* Checking hint */}
+                  {!skuUnchanged &&
+                    skuIsChecking &&
+                    (field.state.value ?? "").length >= 3 && (
+                      <p className="text-xs text-muted-foreground">
+                        Checking availability…
+                      </p>
+                    )}
+                  {/* Available confirmation */}
+                  {!skuUnchanged &&
+                    !skuIsChecking &&
+                    skuCheck.data?.available &&
+                    (field.state.value ?? "").length >= 3 && (
+                      <p className="text-xs text-green-600">SKU is available.</p>
+                    )}
                 </Field>
               )}
             </form.Field>
@@ -219,7 +292,10 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={updateMutation.isPending}>
+            <Button
+              type="submit"
+              disabled={updateMutation.isPending || skuTaken || (!skuUnchanged && skuIsChecking)}
+            >
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
