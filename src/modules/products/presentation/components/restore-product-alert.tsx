@@ -22,15 +22,22 @@ type RestoreProductAlertProps = {
   product: ProductEntity;
   children?: React.ReactNode;
   onRestored?: () => void;
+  filters?: {
+    search: string;
+    page: number;
+    sortBy: string;
+    sortOrder: string;
+  };
 };
 
 export function RestoreProductAlert({
   product,
   children,
   onRestored,
+  filters,
 }: RestoreProductAlertProps) {
   const [open, setOpen] = useState(false);
-  const restoreProductMutation = useRestoreProductMutation();
+  const restoreProductMutation = useRestoreProductMutation(filters);
 
   const handleRestore = () => {
     toast.promise(

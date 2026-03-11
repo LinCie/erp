@@ -22,15 +22,22 @@ type PermanentDeleteProductAlertProps = {
   product: ProductEntity;
   children?: React.ReactNode;
   onDeleted?: () => void;
+  filters?: {
+    search: string;
+    page: number;
+    sortBy: string;
+    sortOrder: string;
+  };
 };
 
 export function PermanentDeleteProductAlert({
   product,
   children,
   onDeleted,
+  filters,
 }: PermanentDeleteProductAlertProps) {
   const [open, setOpen] = useState(false);
-  const permanentDeleteProductMutation = usePermanentDeleteProductMutation();
+  const permanentDeleteProductMutation = usePermanentDeleteProductMutation(filters);
 
   const handleDelete = () => {
     toast.promise(

@@ -95,6 +95,12 @@ function createColumns(
   sortBy: ProductSortField,
   sortOrder: ProductSortOrder,
   onSortChange: (field: ProductSortField) => void,
+  filters: {
+    search: string;
+    page: number;
+    sortBy: ProductSortField;
+    sortOrder: ProductSortOrder;
+  },
 ): ColumnDef<Product>[] {
   const renderSortableHeader = (field: ProductSortField, label: string) => (
     <Button variant="ghost" onClick={() => onSortChange(field)}>
@@ -142,9 +148,25 @@ function createColumns(
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <RestoreProductAlert product={product} />
+              <RestoreProductAlert
+                product={product}
+                filters={{
+                  search: filters.search,
+                  page: filters.page,
+                  sortBy: filters.sortBy,
+                  sortOrder: filters.sortOrder,
+                }}
+              />
               <DropdownMenuSeparator />
-              <PermanentDeleteProductAlert product={product} />
+              <PermanentDeleteProductAlert
+                product={product}
+                filters={{
+                  search: filters.search,
+                  page: filters.page,
+                  sortBy: filters.sortBy,
+                  sortOrder: filters.sortOrder,
+                }}
+              />
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -235,17 +257,22 @@ export function ProductsTrashListView({
   const products = result?.data ?? [];
   const metadata = result?.metadata;
 
-  const columns = createColumns(sortBy, sortOrder, (field) => {
-    const params = new URLSearchParams(searchParamsString);
-    const nextOrder: ProductSortOrder =
-      sortBy === field && sortOrder === "asc" ? "desc" : "asc";
+  const columns = createColumns(
+    sortBy,
+    sortOrder,
+    (field) => {
+      const params = new URLSearchParams(searchParamsString);
+      const nextOrder: ProductSortOrder =
+        sortBy === field && sortOrder === "asc" ? "desc" : "asc";
 
-    params.set("sortBy", field);
-    params.set("sortOrder", nextOrder);
-    params.delete("page");
+      params.set("sortBy", field);
+      params.set("sortOrder", nextOrder);
+      params.delete("page");
 
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  });
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    { search: debouncedSearch, page, sortBy, sortOrder },
+  );
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
