@@ -12,7 +12,6 @@ import {
   ArrowUp,
   ArrowUpDown,
   MoreHorizontal,
-  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -29,7 +28,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -54,12 +52,11 @@ import {
   PRODUCT_SORT_ORDERS,
 } from "../../application/types/product.types";
 import { ProductEntity as Product } from "../../domain/product.entity";
-import { useProductsQuery } from "../hooks/use-products-query";
-import { CreateProductModal } from "./create-product-modal";
-import { EditProductModal } from "./edit-product-modal";
-import { DeleteProductAlert } from "./delete-product-alert";
+import { useTrashedProductsQuery } from "../hooks/use-trashed-products-query";
+import { RestoreProductAlert } from "./restore-product-alert";
+import { PermanentDeleteProductAlert } from "./permanent-delete-product-alert";
 
-type ProductsListViewProps = {
+type ProductsTrashListViewProps = {
   initialSearch?: string;
   initialSortBy?: ProductSortField;
   initialSortOrder?: ProductSortOrder;
@@ -121,9 +118,12 @@ function createColumns(
       cell: ({ row }) => row.original.description || "No description",
     },
     {
-      accessorKey: "createdAt",
-      header: () => renderSortableHeader("createdAt", "Created"),
-      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+      accessorKey: "deletedAt",
+      header: () => renderSortableHeader("deletedAt", "Deleted"),
+      cell: ({ row }) =>
+        row.original.deletedAt
+          ? new Date(row.original.deletedAt).toLocaleDateString()
+          : "N/A",
     },
     {
       id: "actions",
@@ -142,19 +142,9 @@ function createColumns(
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/products/${product.slug}`}
-                  className="group w-full cursor-pointer font-medium"
-                  target="_blank"
-                >
-                  <Search className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
-                  View
-                </Link>
-              </DropdownMenuItem>
-              <EditProductModal product={product} />
+              <RestoreProductAlert product={product} />
               <DropdownMenuSeparator />
-              <DeleteProductAlert product={product} />
+              <PermanentDeleteProductAlert product={product} />
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -163,11 +153,11 @@ function createColumns(
   ];
 }
 
-export function ProductsListView({
+export function ProductsTrashListView({
   initialSearch = "",
   initialSortBy = DEFAULT_SORT_BY,
   initialSortOrder = DEFAULT_SORT_ORDER,
-}: ProductsListViewProps) {
+}: ProductsTrashListViewProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -211,7 +201,6 @@ export function ProductsListView({
       params.set("sortOrder", sortOrder);
     }
 
-    // Reset to page 1 when search changes
     params.delete("page");
 
     const nextQuery = params.toString();
@@ -235,7 +224,7 @@ export function ProductsListView({
     data: result,
     isLoading,
     error,
-  } = useProductsQuery({
+  } = useTrashedProductsQuery({
     search: debouncedSearch,
     page,
     limit: DEFAULT_LIMIT,
@@ -283,21 +272,20 @@ export function ProductsListView({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">Products</h1>
         <div className="flex items-center gap-3">
-          <Input
-            placeholder="Search products..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="max-w-sm"
-          />
-          <Link href="/products/trash">
+          <Link href="/products">
             <Button variant="outline" size="sm">
-              Trash
+              Back to Products
             </Button>
           </Link>
-          <CreateProductModal />
+          <h1 className="text-2xl font-semibold">Products Trash</h1>
         </div>
+        <Input
+          placeholder="Search trashed products..."
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="max-w-sm"
+        />
       </div>
 
       <div className="rounded-md border">
@@ -345,7 +333,7 @@ export function ProductsListView({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Could not load products. Please try again.
+                  Could not load trashed products. Please try again.
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows.length ? (
@@ -367,7 +355,7 @@ export function ProductsListView({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No products found.
+                  No deleted products found.
                 </TableCell>
               </TableRow>
             )}
@@ -380,7 +368,7 @@ export function ProductsListView({
           <p className="text-sm text-muted-foreground">
             Showing {(page - 1) * DEFAULT_LIMIT + 1}–
             {Math.min(page * DEFAULT_LIMIT, metadata.total)} of {metadata.total}{" "}
-            products
+            deleted products
           </p>
           <Pagination className="mx-0 w-auto justify-end">
             <PaginationContent>

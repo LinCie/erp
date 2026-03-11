@@ -7,6 +7,7 @@ export const PRODUCT_SORT_FIELDS = [
   "slug",
   "createdAt",
   "updatedAt",
+  "deletedAt",
 ] as const;
 
 export const PRODUCT_SORT_ORDERS = ["asc", "desc"] as const;
@@ -30,6 +31,12 @@ export type FindProductByIdInput = {
 };
 
 export type FindProductByIdOutput = ProductEntity | undefined;
+
+export type FindProductByIdIncludingDeletedInput = {
+  id: string;
+};
+
+export type FindProductByIdIncludingDeletedOutput = ProductEntity | undefined;
 
 export type FindProductBySlugInput = {
   organizationId: string;
@@ -77,3 +84,31 @@ export type CheckSlugUniquenessInput = {
 export type CheckSlugUniquenessOutput = {
   isAvailable: boolean;
 };
+
+export type FindAllTrashedProductsInput = {
+  organizationId: string;
+  page: number;
+  limit: number;
+  search?: string;
+  sortBy: ProductSortField;
+  sortOrder: ProductSortOrder;
+};
+
+export type FindAllTrashedProductsOutput = {
+  data: ProductEntity[];
+  metadata: PaginationMetadata;
+};
+
+export type RestoreProductInput = {
+  id: string;
+  organizationId: string;
+};
+
+export type RestoreProductOutput = ProductEntity;
+
+export type PermanentDeleteProductInput = {
+  id: string;
+  organizationId: string;
+};
+
+export type PermanentDeleteProductOutput = void;

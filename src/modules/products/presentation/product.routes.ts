@@ -320,4 +320,123 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         summary: "Delete a product",
       },
     },
+  )
+  .get(
+    "/trash",
+    async ({ query, organization }) => {
+      const page = query.page ?? 1;
+      const limit = query.limit ?? 10;
+      const search = query.search ?? "";
+      const sortBy = query.sortBy ?? "createdAt";
+      const sortOrder = query.sortOrder ?? "desc";
+
+      const result = await productService.findAllTrashed({
+        organizationId: organization.id,
+        page,
+        limit,
+        search,
+        sortBy,
+        sortOrder,
+      });
+      return result;
+    },
+    {
+      requireAuth: true,
+      requireOrg: true,
+      query: z.object({
+        page: z.coerce.number().min(1).optional(),
+        limit: z.coerce.number().min(1).max(100).optional(),
+        search: z.string().optional(),
+        sortBy: z.enum(PRODUCT_SORT_FIELDS).optional(),
+        sortOrder: z.enum(PRODUCT_SORT_ORDERS).optional(),
+      }),
+      response: {
+        200: z.object({
+          data: z.array(ProductSchema),
+          metadata: PaginationMetadataSchema,
+        }),
+      },
+      detail: {
+        tags: ["Products"],
+        summary: "List all trashed products",
+      },
+    },
+  )
+  .post(
+    "/:id/restore",
+    async ({ params, organization, status }) => {
+      const product = await productService.findByIdIncludingDeleted({
+        id: params.id,
+      });
+
+      if (!product) {
+        return status(404, { error: "Product not found" });
+      }
+
+      if (product.organizationId !== organization.id) {
+        return status(403, { error: "Forbidden" });
+      }
+
+      if (!product.deletedAt) {
+        return status(400, { error: "Product is not deleted" });
+      }
+
+      const restored = await productService.restore({
+        id: params.id,
+        organizationId: organization.id,
+      });
+
+      return restored;
+    },
+    {
+      requireAuth: true,
+      requireOrg: true,
+      params: z.object({
+        id: z.string(),
+      }),
+      response: {
+        200: ProductSchema,
+        400: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+      },
+      detail: {
+        tags: ["Products"],
+        summary: "Restore a soft-deleted product",
+      },
+    },
+  )
+  .delete(
+    "/:id/permanent",
+    async ({ params, organization, status }) => {
+      const product = await productService.findByIdIncludingDeleted({
+        id: params.id,
+      });
+
+      if (!product) {
+        return status(404, { error: "Product not found" });
+      }
+
+      if (product.organizationId !== organization.id) {
+        return status(403, { error: "Forbidden" });
+      }
+
+      await productService.permanentDelete({ id: params.id, organizationId: organization.id });
+    },
+    {
+      requireAuth: true,
+      requireOrg: true,
+      params: z.object({
+        id: z.string(),
+      }),
+      response: {
+        200: z.void(),
+        403: ErrorSchema,
+        404: ErrorSchema,
+      },
+      detail: {
+        tags: ["Products"],
+        summary: "Permanently delete a product",
+      },
+    },
   );

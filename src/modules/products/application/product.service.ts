@@ -4,6 +4,8 @@ import type {
   CreateProductOutput,
   FindProductByIdInput,
   FindProductByIdOutput,
+  FindProductByIdIncludingDeletedInput,
+  FindProductByIdIncludingDeletedOutput,
   FindProductBySlugInput,
   FindProductBySlugOutput,
   FindAllProductsInput,
@@ -14,6 +16,12 @@ import type {
   DeleteProductOutput,
   CheckSlugUniquenessInput,
   CheckSlugUniquenessOutput,
+  FindAllTrashedProductsInput,
+  FindAllTrashedProductsOutput,
+  RestoreProductInput,
+  RestoreProductOutput,
+  PermanentDeleteProductInput,
+  PermanentDeleteProductOutput,
 } from "./types/product.types";
 import type { VariantService } from "@/modules/variants/application/variant.service";
 
@@ -52,6 +60,12 @@ export class ProductService {
     return this.repository.findById(input);
   }
 
+  async findByIdIncludingDeleted(
+    input: FindProductByIdIncludingDeletedInput,
+  ): Promise<FindProductByIdIncludingDeletedOutput> {
+    return this.repository.findByIdIncludingDeleted(input);
+  }
+
   async findBySlug(
     input: FindProductBySlugInput,
   ): Promise<FindProductBySlugOutput> {
@@ -86,5 +100,21 @@ export class ProductService {
     input: CheckSlugUniquenessInput,
   ): Promise<CheckSlugUniquenessOutput> {
     return this.repository.checkSlugUniqueness(input);
+  }
+
+  async findAllTrashed(
+    input: FindAllTrashedProductsInput,
+  ): Promise<FindAllTrashedProductsOutput> {
+    return this.repository.findAllTrashed(input);
+  }
+
+  async restore(input: RestoreProductInput): Promise<RestoreProductOutput> {
+    return this.repository.restore(input);
+  }
+
+  async permanentDelete(
+    input: PermanentDeleteProductInput,
+  ): Promise<PermanentDeleteProductOutput> {
+    return this.repository.permanentDelete(input);
   }
 }

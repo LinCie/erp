@@ -6,6 +6,8 @@ import type {
   CreateProductOutput,
   FindProductByIdInput,
   FindProductByIdOutput,
+  FindProductByIdIncludingDeletedInput,
+  FindProductByIdIncludingDeletedOutput,
   FindProductBySlugInput,
   FindProductBySlugOutput,
   FindAllProductsInput,
@@ -16,6 +18,12 @@ import type {
   DeleteProductOutput,
   CheckSlugUniquenessInput,
   CheckSlugUniquenessOutput,
+  FindAllTrashedProductsInput,
+  FindAllTrashedProductsOutput,
+  RestoreProductInput,
+  RestoreProductOutput,
+  PermanentDeleteProductInput,
+  PermanentDeleteProductOutput,
 } from "../application/types/product.types";
 import type { ProductRepository } from "../application/product.repository";
 import type { ProductEntity } from "../domain/product.entity";
@@ -42,6 +50,18 @@ export class ProductRepositoryImpl implements ProductRepository {
       .selectAll()
       .where("id", "=", input.id)
       .where("deletedAt", "is", null)
+      .executeTakeFirst();
+
+    return product ? this.mapToEntity(product) : undefined;
+  }
+
+  async findByIdIncludingDeleted(
+    input: FindProductByIdIncludingDeletedInput,
+  ): Promise<FindProductByIdIncludingDeletedOutput> {
+    const product = await db
+      .selectFrom("products")
+      .selectAll()
+      .where("id", "=", input.id)
       .executeTakeFirst();
 
     return product ? this.mapToEntity(product) : undefined;
@@ -167,5 +187,67 @@ export class ProductRepositoryImpl implements ProductRepository {
     const existing = await query.executeTakeFirst();
 
     return { isAvailable: !existing };
+  }
+
+  async findAllTrashed(
+    input: FindAllTrashedProductsInput,
+  ): Promise<FindAllTrashedProductsOutput> {
+    const offset = (input.page - 1) * input.limit;
+
+    let baseQuery = db
+      .selectFrom("products")
+      .where("organizationId", "=", input.organizationId)
+      .where("deletedAt", "is not", null);
+
+    if (input.search) {
+      const escaped = input.search.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+      baseQuery = baseQuery.where("name", "ilike", `%${escaped}%`);
+    }
+
+    const [products, countResult] = await Promise.all([
+      baseQuery
+        .selectAll()
+        .orderBy(input.sortBy, input.sortOrder)
+        .limit(input.limit)
+        .offset(offset)
+        .execute(),
+      baseQuery.select((eb) => eb.fn.countAll().as("count")).executeTakeFirst(),
+    ]);
+
+    const total = Number(countResult?.count ?? 0);
+    const totalPages = Math.ceil(total / input.limit);
+
+    return {
+      data: products.map(this.mapToEntity),
+      metadata: {
+        page: input.page,
+        limit: input.limit,
+        total,
+        totalPages,
+      },
+    };
+  }
+
+  async restore(input: RestoreProductInput): Promise<RestoreProductOutput> {
+    const product = await db
+      .updateTable("products")
+      .set({ deletedAt: null, updatedAt: new Date() })
+      .where("id", "=", input.id)
+      .where("organizationId", "=", input.organizationId)
+      .where("deletedAt", "is not", null)
+      .returningAll()
+      .executeTakeFirstOrThrow();
+
+    return this.mapToEntity(product);
+  }
+
+  async permanentDelete(
+    input: PermanentDeleteProductInput,
+  ): Promise<PermanentDeleteProductOutput> {
+    await db
+      .deleteFrom("products")
+      .where("id", "=", input.id)
+      .where("organizationId", "=", input.organizationId)
+      .execute();
   }
 }
