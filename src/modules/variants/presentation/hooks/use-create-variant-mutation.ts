@@ -4,27 +4,20 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/shared/presentation/libraries/api-client";
 import { variantKeys } from "./variant-keys";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const variantApi = api as any;
-
-type CreateVariantInput = {
-  sku: string;
-  basePrice: number;
-  salePrice?: number;
-  costPrice?: number;
-  currency?: string;
-  isDefault?: boolean;
-};
+import type { CreateVariantInput } from "../schemas/variant-schema";
 
 export function useCreateVariantMutation(productId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (input: CreateVariantInput) => {
-      const response = await variantApi
-        .products({ productId })
-        .variants.post(input);
+      const response = await api
+        .products({ id: productId })
+        .variants.post({
+          ...input,
+          currency: input.currency ?? "USD",
+          isDefault: input.isDefault ?? false,
+        });
 
       if (response.error) {
         throw new Error(
@@ -41,6 +34,9 @@ export function useCreateVariantMutation(productId: string) {
       });
 
       toast.success("Variant created.");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 }
