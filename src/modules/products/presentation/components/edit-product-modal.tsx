@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useForm } from "@tanstack/react-form";
-import { Loader2, Pencil } from "lucide-react";
+import { useStore } from "@tanstack/react-store";
+import { Loader2, Pencil, Loader2Icon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
 import { Button } from "@/shared/presentation/components/ui/button";
 import {
   Dialog,
@@ -16,7 +17,6 @@ import {
 import { DropdownMenuItem } from "@/shared/presentation/components/ui/dropdown-menu";
 import {
   Field,
-  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -32,7 +32,9 @@ import {
 } from "../schemas/create-product-schema";
 import { useUpdateProductMutation } from "../hooks/use-update-product-mutation";
 import type { ProductEntity } from "../../domain/product.entity";
-import { generateSlug, checkSlugAvailability } from "../utils/product.utils";
+import { generateSlug } from "../utils/product.utils";
+import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
+import { useCheckSlugQuery } from "../hooks/use-check-slug-query";
 
 type EditProductModalProps = {
   product: ProductEntity;
@@ -71,6 +73,20 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
       }
     },
   });
+
+  const rawSlug = useStore(form.store, (state) => state.values.slug);
+  const debouncedSlug = useDebouncedValue(rawSlug, 500);
+
+  const slugCheck = useCheckSlugQuery({
+    slug: debouncedSlug,
+    excludeId: product.id,
+    enabled: debouncedSlug.length >= 3,
+  });
+
+  const slugIsChecking =
+    rawSlug !== debouncedSlug || (slugCheck.isFetching && !slugCheck.isError);
+  const slugTaken =
+    !slugIsChecking && slugCheck.data !== undefined && !slugCheck.data.available;
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
@@ -155,45 +171,59 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
                       ? undefined
                       : result.error.issues[0]?.message;
                   },
-                  onChangeAsyncDebounceMs: 500,
-                  onChangeAsync: async ({ value, signal }) => {
-                    const slug = value.trim();
-
-                    if (!productSlugSchema.safeParse(slug).success) {
-                      return undefined;
-                    }
-
-                    const isAvailable = await checkSlugAvailability(
-                      slug,
-                      signal,
-                      product.id,
-                    );
-
-                    return isAvailable ? undefined : "Slug is already taken";
-                  },
                 }}
               >
                 {(field) => (
                   <Field data-invalid={field.state.meta.errors.length > 0}>
                     <FieldLabel htmlFor={field.name}>Slug *</FieldLabel>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(event) => {
-                        field.handleChange(event.target.value);
-                      }}
-                      aria-invalid={field.state.meta.errors.length > 0}
-                      placeholder="premium-laptop"
-                      disabled={updateProductMutation.isPending}
-                    />
-                    {field.state.meta.isValidating ? (
-                      <FieldDescription>
-                        Checking slug availability...
-                      </FieldDescription>
-                    ) : null}
+                    <div className="relative">
+                      <Input
+                        id={field.name}
+                        name={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(event) => {
+                          field.handleChange(event.target.value);
+                        }}
+                        aria-invalid={field.state.meta.errors.length > 0}
+                        placeholder="premium-laptop"
+                        disabled={updateProductMutation.isPending}
+                        className={
+                          slugTaken
+                            ? "border-destructive pr-8 focus-visible:ring-destructive"
+                            : slugCheck.data?.available
+                              ? "border-green-500 pr-8 focus-visible:ring-green-500"
+                              : "pr-8"
+                        }
+                      />
+                      {field.state.value.length >= 3 && (
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
+                          {slugIsChecking ? (
+                            <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                          ) : slugTaken ? (
+                            <XCircleIcon className="size-4 text-destructive" />
+                          ) : slugCheck.data?.available ? (
+                            <CheckCircle2Icon className="size-4 text-green-500" />
+                          ) : null}
+                        </span>
+                      )}
+                    </div>
                     <FieldError errors={field.state.meta.errors} />
+                    {slugTaken && !field.state.meta.errors.length && (
+                      <p className="text-sm font-medium text-destructive">
+                        This slug is already in use by another product.
+                      </p>
+                    )}
+                    {slugIsChecking && field.state.value.length >= 3 && (
+                      <p className="text-xs text-muted-foreground">
+                        Checking availability…
+                      </p>
+                    )}
+                    {!slugIsChecking &&
+                      slugCheck.data?.available &&
+                      field.state.value.length >= 3 && (
+                        <p className="text-xs text-green-600">Slug is available.</p>
+                      )}
                   </Field>
                 )}
               </form.Field>
@@ -232,10 +262,10 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
             <Button
               type="submit"
               disabled={
-                updateProductMutation.isPending || form.state.isValidating
+                updateProductMutation.isPending || slugTaken || slugIsChecking
               }
             >
-              {updateProductMutation.isPending || form.state.isValidating ? (
+              {updateProductMutation.isPending ? (
                 <Loader2 className="animate-spin" data-icon="inline-start" />
               ) : null}
               Save Changes
