@@ -181,4 +181,16 @@ export class ProductService {
 - 001-product-variants: Added TypeScript 5.x with strict mode + Elysia 1.4+, Next.js 16+, React 19+, Kysely ORM, TanStack Form/Query
 
 <!-- MANUAL ADDITIONS START -->
+
+## Error Resolution Protocol
+
+When encountering an error (build failure, type error, runtime error, test failure, etc.), the agent MUST:
+
+1. **Search for solutions** using web search (`exa_web_search_exa`) and/or Context7 (`context7_resolve-library-id` + `context7_query-docs`) before attempting fixes
+2. **Prioritize Context7** for library/framework-specific errors (Elysia, Next.js, React, TanStack, Kysely, etc.)
+3. **Use web search** for general errors, version-specific issues, or when Context7 doesn't yield results
+4. **Document the solution** - briefly note what fixed the issue for future reference
+
+This ensures solutions are based on current best practices and documented patterns rather than assumptions.
+
 <!-- MANUAL ADDITIONS END -->
