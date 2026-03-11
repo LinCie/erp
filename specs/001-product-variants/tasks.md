@@ -154,25 +154,25 @@
 
 ### Data Integrity
 
-- [ ] T038 [P] Create post-migration script to generate default variants for existing products without variants
-- [ ] T039 Add SKU normalization (trim whitespace) in Zod schema transforms in src/modules/variants/presentation/schemas/variant-schema.ts
+- [x] T038 [P] Create post-migration script to generate default variants for existing products without variants
+- [x] T039 Add SKU normalization (trim whitespace) in Zod schema transforms in src/modules/variants/presentation/schemas/variant-schema.ts
 
 ### UI Polish
 
-- [ ] T040 [P] Add loading skeletons for variants list in src/modules/variants/presentation/components/variant-list-view.tsx
-- [ ] T041 [P] Add error handling for all variant operations with user-friendly messages
-- [ ] T042 Add optimistic updates for variant CRUD operations in query hooks
+- [x] T040 [P] Add loading skeletons for variants list in src/modules/variants/presentation/components/variant-list-view.tsx
+- [x] T041 [P] Add error handling for all variant operations with user-friendly messages
+- [x] T042 Add optimistic updates for variant CRUD operations in query hooks
 
 ### Documentation
 
-- [ ] T043 Update API documentation with variant endpoints
-- [ ] T044 Add inline code comments for complex variant logic
+- [x] T043 Update API documentation with variant endpoints
+- [x] T044 Add inline code comments for complex variant logic
 
 ### Validation
 
-- [ ] T045 Run quickstart.md validation steps
-- [ ] T046 Verify all TypeScript strict mode compliance
-- [ ] T047 Run lint and typecheck: bun run lint
+- [x] T045 Run quickstart.md validation steps
+- [x] T046 Verify all TypeScript strict mode compliance
+- [x] T047 Run lint and typecheck: bun run lint
 
 ---
 
