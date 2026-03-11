@@ -12,7 +12,22 @@ import type {
 import type { VariantRepository } from "../application/variant.repository";
 import type { VariantEntity } from "../domain/variant.entity";
 
+/**
+ * Kysely-backed implementation of the VariantRepository interface.
+ *
+ * All queries filter out soft-deleted rows (deleted_at IS NULL) unless
+ * explicitly requested otherwise. Numeric columns (basePrice, salePrice,
+ * costPrice) are stored as DECIMAL in PostgreSQL and come back as strings
+ * from the driver — mapToEntity() normalises them to JS numbers.
+ */
 export class VariantRepositoryImpl implements VariantRepository {
+  /**
+   * Inserts a new variant row.
+   *
+   * If the variant is marked as the default, any existing default for the
+   * same product is cleared first to enforce the one-default-per-product
+   * invariant.
+   */
   async create(input: CreateVariantInput): Promise<VariantEntity> {
     // If this variant is the new default, clear the existing default first
     if (input.isDefault) {
@@ -37,6 +52,13 @@ export class VariantRepositoryImpl implements VariantRepository {
     return this.mapToEntity(variant);
   }
 
+  /**
+   * Batch-inserts multiple variants for a product in a single INSERT.
+   *
+   * Pre-validates that at most one variant in the batch is flagged as
+   * default. If a default is present, existing defaults for the product
+   * are cleared before the insert.
+   */
   async bulkCreate(input: BulkCreateVariantsInput): Promise<VariantEntity[]> {
     const defaultCount = input.variants.filter((v) => v.isDefault).length;
     if (defaultCount > 1) {
@@ -100,6 +122,13 @@ export class VariantRepositoryImpl implements VariantRepository {
     };
   }
 
+  /**
+   * Partial update of a variant row.
+   *
+   * Only non-undefined fields are written. When promoting this variant to
+   * default, the existing default for the same product is cleared first
+   * (excluding this variant's own ID to avoid a self-unset race).
+   */
   async update(id: string, input: UpdateVariantInput): Promise<VariantEntity> {
     const updateData: Partial<{
       sku: string;
@@ -145,6 +174,7 @@ export class VariantRepositoryImpl implements VariantRepository {
     return this.mapToEntity(variant);
   }
 
+  /** Soft-deletes a variant by setting deleted_at to now. */
   async delete(id: string): Promise<void> {
     await db
       .updateTable("variants")
@@ -154,6 +184,13 @@ export class VariantRepositoryImpl implements VariantRepository {
       .execute();
   }
 
+  /**
+   * Checks SKU availability across all active variants.
+   *
+   * Returns `{ available: true }` when no active variant uses the given SKU
+   * (optionally excluding a specific variant ID — used during edits so the
+   * variant's own current SKU doesn't count as a conflict).
+   */
   async checkSkuAvailability(
     sku: string,
     excludeId?: string,
@@ -198,6 +235,12 @@ export class VariantRepositoryImpl implements VariantRepository {
     await query.execute();
   }
 
+  /**
+   * Maps a Kysely database row to a domain VariantEntity.
+   *
+   * Coerces DECIMAL columns (basePrice, salePrice, costPrice) from strings
+   * to JS numbers since pg returns DECIMAL as string to avoid precision loss.
+   */
   private mapToEntity(variant: Selectable<Variants>): VariantEntity {
     return {
       id: variant.id,
