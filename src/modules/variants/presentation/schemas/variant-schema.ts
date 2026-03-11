@@ -1,5 +1,29 @@
 import { z } from "zod";
 
+/**
+ * Reusable SKU schema with trim-first normalization.
+ *
+ * Order of operations:
+ * 1. Trim leading/trailing whitespace (via transform)
+ * 2. Pipe the trimmed value into min/max/regex validators
+ *
+ * This ensures copy-pasted SKUs with trailing spaces don't fail
+ * the regex check before whitespace is removed.
+ */
+const skuSchema = z
+  .string()
+  .transform((val) => val.trim())
+  .pipe(
+    z
+      .string()
+      .min(3, "SKU must be at least 3 characters")
+      .max(50, "SKU must be at most 50 characters")
+      .regex(
+        /^[a-zA-Z0-9-_]+$/,
+        "SKU can only contain letters, numbers, hyphens, and underscores",
+      ),
+  );
+
 export const variantSchema = z.object({
   id: z.uuid(),
   productId: z.uuid(),
@@ -21,15 +45,7 @@ export const variantSchema = z.object({
 });
 
 export const createVariantSchema = z.object({
-  sku: z
-    .string()
-    .min(3, "SKU must be at least 3 characters")
-    .max(50, "SKU must be at most 50 characters")
-    .regex(
-      /^[a-zA-Z0-9-_]+$/,
-      "SKU can only contain letters, numbers, hyphens, and underscores",
-    )
-    .transform((val) => val.trim()),
+  sku: skuSchema,
   basePrice: z.number().min(0, "Base price must be non-negative"),
   salePrice: z.number().min(0, "Sale price must be non-negative").optional(),
   costPrice: z.number().min(0, "Cost price must be non-negative").optional(),
@@ -44,7 +60,7 @@ export const bulkCreateSchema = z.object({
 });
 
 export const checkSkuQuerySchema = z.object({
-  sku: z.string().min(1),
+  sku: z.string().min(1).transform((val) => val.trim()),
   excludeId: z.uuid().optional(),
 });
 
