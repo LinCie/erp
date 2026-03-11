@@ -133,6 +133,7 @@ export class VariantService {
     const defaults = createDefaultVariant(productId);
     return this.repository.create({
       productId: defaults.productId,
+      name: defaults.name,
       sku: defaults.sku,
       basePrice: defaults.basePrice,
       currency: defaults.currency,

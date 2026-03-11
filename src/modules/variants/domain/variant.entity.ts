@@ -13,6 +13,7 @@ export interface VariantEntity {
   id: string;
   productId: string;
 
+  name: string;
   sku: string;
 
   basePrice: number;
@@ -45,6 +46,7 @@ export function createDefaultVariant(
 ): Omit<VariantEntity, "id" | "createdAt" | "updatedAt"> {
   return {
     productId,
+    name: "Default",
     sku: `AUTO-${productId.slice(0, 8)}-${Date.now()}`,
     basePrice: 0,
     currency: "USD",

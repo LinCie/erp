@@ -37,6 +37,7 @@ export function CreateVariantModal({ productId }: CreateVariantModalProps) {
 
   const form = useForm({
     defaultValues: {
+      name: "",
       sku: "",
       basePrice: 0,
       salePrice: undefined as number | undefined,
@@ -47,6 +48,7 @@ export function CreateVariantModal({ productId }: CreateVariantModalProps) {
     onSubmit: async ({ value }) => {
       try {
         await createMutation.mutateAsync({
+          name: value.name,
           sku: value.sku,
           basePrice: value.basePrice,
           salePrice: value.salePrice,
@@ -103,6 +105,33 @@ export function CreateVariantModal({ productId }: CreateVariantModalProps) {
           className="space-y-4"
         >
           <FieldGroup>
+            <form.Field
+              name="name"
+              validators={{
+                onChange: ({ value }) => {
+                  const result = createVariantSchema.shape.name.safeParse(value);
+                  return result.success
+                    ? undefined
+                    : result.error.issues[0]?.message;
+                },
+              }}
+            >
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="name">Name *</FieldLabel>
+                  <Input
+                    id="name"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder="e.g., Small / Red"
+                    disabled={createMutation.isPending}
+                  />
+                  <FieldError errors={field.state.meta.errors} />
+                </Field>
+              )}
+            </form.Field>
+
             <form.Field
               name="sku"
               validators={{

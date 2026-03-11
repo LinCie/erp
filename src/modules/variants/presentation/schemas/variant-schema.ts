@@ -10,6 +10,16 @@ import { z } from "zod";
  * This ensures copy-pasted SKUs with trailing spaces don't fail
  * the regex check before whitespace is removed.
  */
+const nameSchema = z
+  .string()
+  .transform((val) => val.trim())
+  .pipe(
+    z
+      .string()
+      .min(1, "Name is required")
+      .max(100, "Name must be at most 100 characters"),
+  );
+
 const skuSchema = z
   .string()
   .transform((val) => val.trim())
@@ -27,6 +37,7 @@ const skuSchema = z
 export const variantSchema = z.object({
   id: z.uuid(),
   productId: z.uuid(),
+  name: z.string().min(1).max(100),
   sku: z
     .string()
     .min(3)
@@ -45,6 +56,7 @@ export const variantSchema = z.object({
 });
 
 export const createVariantSchema = z.object({
+  name: nameSchema,
   sku: skuSchema,
   basePrice: z.number().min(0, "Base price must be non-negative"),
   salePrice: z.number().min(0, "Sale price must be non-negative").optional(),

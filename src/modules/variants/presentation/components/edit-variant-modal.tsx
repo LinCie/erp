@@ -39,6 +39,7 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
 
   const form = useForm({
     defaultValues: {
+      name: variant.name,
       sku: variant.sku,
       basePrice: variant.basePrice,
       salePrice: variant.salePrice ?? undefined,
@@ -51,6 +52,7 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
         await updateMutation.mutateAsync({
           variantId: variant.id,
           input: {
+            name: value.name,
             sku: value.sku,
             basePrice: value.basePrice,
             salePrice: value.salePrice,
@@ -117,6 +119,34 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
           }}
         >
           <FieldGroup className="gap-4 py-4">
+            <form.Field
+              name="name"
+              validators={{
+                onChange: ({ value }) => {
+                  const result = updateVariantSchema.shape.name?.safeParse(value);
+                  if (!result) return undefined;
+                  return result.success
+                    ? undefined
+                    : result.error.issues[0]?.message;
+                },
+              }}
+            >
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="name">Name *</FieldLabel>
+                  <Input
+                    id="name"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder="e.g., Small / Red"
+                    disabled={updateMutation.isPending}
+                  />
+                  <FieldError errors={field.state.meta.errors} />
+                </Field>
+              )}
+            </form.Field>
+
             <form.Field
               name="sku"
               validators={{

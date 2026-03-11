@@ -38,6 +38,7 @@ export class VariantRepositoryImpl implements VariantRepository {
       .insertInto("variants")
       .values({
         productId: input.productId,
+        name: input.name,
         sku: input.sku,
         basePrice: input.basePrice,
         salePrice: input.salePrice ?? null,
@@ -72,6 +73,7 @@ export class VariantRepositoryImpl implements VariantRepository {
 
     const rows = input.variants.map((v) => ({
       productId: input.productId,
+      name: v.name,
       sku: v.sku,
       basePrice: v.basePrice,
       salePrice: v.salePrice ?? null,
@@ -131,6 +133,7 @@ export class VariantRepositoryImpl implements VariantRepository {
    */
   async update(id: string, input: UpdateVariantInput): Promise<VariantEntity> {
     const updateData: Partial<{
+      name: string;
       sku: string;
       basePrice: number;
       salePrice: number | null;
@@ -140,6 +143,7 @@ export class VariantRepositoryImpl implements VariantRepository {
       updatedBy: string | null;
     }> = {};
 
+    if (input.name !== undefined) updateData.name = input.name;
     if (input.sku !== undefined) updateData.sku = input.sku;
     if (input.basePrice !== undefined) updateData.basePrice = input.basePrice;
     if (input.salePrice !== undefined)
@@ -245,6 +249,7 @@ export class VariantRepositoryImpl implements VariantRepository {
     return {
       id: variant.id,
       productId: variant.productId,
+      name: variant.name,
       sku: variant.sku,
       basePrice: Number(variant.basePrice),
       salePrice: variant.salePrice !== null ? Number(variant.salePrice) : null,

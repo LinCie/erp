@@ -6,6 +6,7 @@ import { api } from "@/shared/presentation/libraries/api-client";
 import { productKeys } from "../hooks/product-keys";
 
 type VariantInput = {
+  name: string;
   sku: string;
   basePrice: number;
   salePrice?: number;

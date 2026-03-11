@@ -2,6 +2,7 @@ import type { VariantEntity } from "../../domain/variant.entity";
 
 export interface CreateVariantInput {
   productId: string;
+  name: string;
   sku: string;
   basePrice: number;
   salePrice?: number;
@@ -12,6 +13,7 @@ export interface CreateVariantInput {
 }
 
 export interface UpdateVariantInput {
+  name?: string;
   sku?: string;
   basePrice?: number;
   salePrice?: number;

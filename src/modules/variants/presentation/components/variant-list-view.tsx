@@ -29,6 +29,11 @@ type VariantListViewProps = {
 
 const COLUMNS: ColumnDef<VariantEntity>[] = [
   {
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+  },
+  {
     accessorKey: "sku",
     header: "SKU",
     cell: ({ row }) => (

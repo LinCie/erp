@@ -14,6 +14,7 @@ import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-val
 import { useCheckSkuQuery } from "../hooks/use-check-sku-query";
 
 export type VariantFieldValues = {
+  name: string;
   sku: string;
   basePrice: number;
   salePrice?: number;
@@ -80,6 +81,19 @@ export function VariantFormFields({
       </p>
 
       <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor={`variant-${index}-name`}>Name *</FieldLabel>
+          <Input
+            id={`variant-${index}-name`}
+            value={value.name}
+            onChange={(e) => handleChange("name", e.target.value)}
+            onBlur={field.handleBlur}
+            placeholder="e.g., Small / Red"
+            disabled={disabled}
+          />
+          <FieldError errors={[]} />
+        </Field>
+
         <Field>
           <FieldLabel htmlFor={`variant-${index}-sku`}>SKU *</FieldLabel>
           <div className="relative">
