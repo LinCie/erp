@@ -5,9 +5,6 @@ import { api } from "@/shared/presentation/libraries/api-client";
 import type { VariantEntity } from "../../domain/variant.entity";
 import { variantKeys } from "./variant-keys";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const variantApi = api as any;
-
 type UseVariantsQueryInput = {
   productId: string;
 };
@@ -19,8 +16,8 @@ export function useVariantsQuery({ productId }: UseVariantsQueryInput) {
   }>({
     queryKey: variantKeys.list(productId),
     queryFn: async ({ signal }) => {
-      const response = await variantApi
-        .products({ productId })
+      const response = await api
+        .products({ id: productId })
         .variants.get({ fetch: { signal } });
 
       if (response.error) {

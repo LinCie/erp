@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -23,6 +24,7 @@ type VariantListViewProps = {
   variants?: VariantEntity[];
   isLoading?: boolean;
   error?: Error | null;
+  renderActions?: (variant: VariantEntity) => React.ReactNode;
 };
 
 const COLUMNS: ColumnDef<VariantEntity>[] = [
@@ -68,15 +70,34 @@ const COLUMNS: ColumnDef<VariantEntity>[] = [
   },
 ];
 
+function getColumnsWithActions(
+  renderActions?: (variant: VariantEntity) => React.ReactNode
+): ColumnDef<VariantEntity>[] {
+  if (!renderActions) return COLUMNS;
+
+  return [
+    ...COLUMNS,
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-1">{renderActions(row.original)}</div>
+      ),
+    },
+  ];
+}
+
 export function VariantListView({
   variants,
   isLoading,
   error,
+  renderActions,
 }: VariantListViewProps) {
+  const columns = getColumnsWithActions(renderActions);
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: variants ?? [],
-    columns: COLUMNS,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   });
 

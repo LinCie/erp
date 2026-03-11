@@ -11,6 +11,9 @@ import { DeleteProductAlert } from "./delete-product-alert";
 import { useRouter } from "next/navigation";
 import { useVariantsQuery } from "@/modules/variants/presentation/hooks/use-variants-query";
 import { VariantListView } from "@/modules/variants/presentation/components/variant-list-view";
+import { CreateVariantModal } from "@/modules/variants/presentation/components/create-variant-modal";
+import { EditVariantModal } from "@/modules/variants/presentation/components/edit-variant-modal";
+import { DeleteVariantAlert } from "@/modules/variants/presentation/components/delete-variant-alert";
 
 export function ProductView({ slug }: { slug: string }) {
   const { data: product, isLoading, error } = useProductQuery(slug);
@@ -203,7 +206,10 @@ function VariantsSection({ productId }: { productId: string }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="font-semibold text-lg">Variants</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-lg">Variants</h3>
+        <CreateVariantModal productId={productId} />
+      </div>
       {hasOnlyAutoDefault && (
         <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
@@ -219,6 +225,12 @@ function VariantsSection({ productId }: { productId: string }) {
         variants={variants}
         isLoading={isLoading}
         error={error}
+        renderActions={(variant) => (
+          <>
+            <EditVariantModal productId={productId} variant={variant} />
+            <DeleteVariantAlert productId={productId} variant={variant} />
+          </>
+        )}
       />
     </div>
   );
