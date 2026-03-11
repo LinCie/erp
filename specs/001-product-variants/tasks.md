@@ -107,21 +107,21 @@
 
 ### Backend Implementation
 
-- [ ] T024 Add updateVariant method to Variant service in src/modules/variants/application/variant.service.ts (depends on T011)
-- [ ] T025 Add deleteVariant method to Variant service in src/modules/variants/application/variant.service.ts (depends on T011)
-- [ ] T026 Update Variant API routes with PUT and DELETE endpoints in src/modules/variants/presentation/variant.routes.ts (depends on T024, T025)
+- [X] T024 Add updateVariant method to Variant service in src/modules/variants/application/variant.service.ts (depends on T011)
+- [X] T025 Add deleteVariant method to Variant service in src/modules/variants/application/variant.service.ts (depends on T011)
+- [X] T026 Update Variant API routes with PUT and DELETE endpoints in src/modules/variants/presentation/variant.routes.ts (depends on T024, T025)
 
 ### Frontend Components
 
-- [ ] T027 [P] Create create-variant-modal component in src/modules/variants/presentation/components/create-variant-modal.tsx
-- [ ] T028 [P] Create edit-variant-modal component in src/modules/variants/presentation/components/edit-variant-modal.tsx
-- [ ] T029 [P] Create delete-variant-alert component in src/modules/variants/presentation/components/delete-variant-alert.tsx
-- [ ] T030 Update product detail view with variants table and action buttons in src/modules/products/presentation/components/product-detail-view.tsx (depends on T027, T028, T029, T014)
+- [X] T027 [P] Create create-variant-modal component in src/modules/variants/presentation/components/create-variant-modal.tsx
+- [X] T028 [P] Create edit-variant-modal component in src/modules/variants/presentation/components/edit-variant-modal.tsx
+- [X] T029 [P] Create delete-variant-alert component in src/modules/variants/presentation/components/delete-variant-alert.tsx
+- [x] T030 Update product detail view with variants table and action buttons in src/modules/products/presentation/components/product-detail-view.tsx (depends on T027, T028, T029, T014)
 
 ### Query Hooks
 
-- [ ] T031 [P] Create use-update-variant-mutation hook in src/modules/variants/presentation/hooks/use-update-variant-mutation.ts
-- [ ] T032 [P] Create use-delete-variant-mutation hook in src/modules/variants/presentation/hooks/use-delete-variant-mutation.ts
+- [X] T031 [P] Create use-update-variant-mutation hook in src/modules/variants/presentation/hooks/use-update-variant-mutation.ts
+- [X] T032 [P] Create use-delete-variant-mutation hook in src/modules/variants/presentation/hooks/use-delete-variant-mutation.ts
 
 **Checkpoint**: User Story 3 complete - Users can manage variants from product detail page
 
