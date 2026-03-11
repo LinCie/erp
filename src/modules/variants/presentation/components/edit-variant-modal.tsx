@@ -47,18 +47,22 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
       isDefault: variant.isDefault,
     },
     onSubmit: async ({ value }) => {
-      await updateMutation.mutateAsync({
-        variantId: variant.id,
-        input: {
-          sku: value.sku,
-          basePrice: value.basePrice,
-          salePrice: value.salePrice,
-          costPrice: value.costPrice,
-          currency: value.currency,
-          isDefault: value.isDefault,
-        },
-      });
-      setIsOpen(false);
+      try {
+        await updateMutation.mutateAsync({
+          variantId: variant.id,
+          input: {
+            sku: value.sku,
+            basePrice: value.basePrice,
+            salePrice: value.salePrice,
+            costPrice: value.costPrice,
+            currency: value.currency,
+            isDefault: value.isDefault,
+          },
+        });
+        setIsOpen(false);
+      } catch {
+        // Error is handled by mutation's onError handler (toast)
+      }
     },
   });
 
