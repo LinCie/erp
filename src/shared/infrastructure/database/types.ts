@@ -99,6 +99,7 @@ export interface Variants {
   deletedAt: Timestamp | null;
   id: Generated<string>;
   isDefault: Generated<boolean>;
+  name: string;
   productId: string;
   salePrice: Numeric | null;
   sku: string;

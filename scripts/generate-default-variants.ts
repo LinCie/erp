@@ -62,6 +62,7 @@ async function generateDefaultVariants(): Promise<void> {
         .insertInto("variants")
         .values({
           productId: product.id,
+          name: "Default",
           sku,
           basePrice: 0,
           currency: "USD",

@@ -50,6 +50,7 @@ export function useCreateVariantMutation(productId: string) {
         const optimisticVariant: VariantEntity = {
           id: `temp-${Date.now()}`,
           productId,
+          name: input.name,
           sku: input.sku,
           basePrice: input.basePrice,
           salePrice: input.salePrice ?? null,

@@ -75,6 +75,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         variants: z
           .array(
             z.object({
+              name: z.string().min(1).max(255),
               sku: z.string().min(3).max(50),
               basePrice: z.number().min(0),
               salePrice: z.number().min(0).optional(),
