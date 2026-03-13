@@ -1,16 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { AlertCircle, Loader2, Plus } from "lucide-react";
 import { Button } from "@/shared/presentation/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/presentation/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/shared/presentation/components/ui/sheet";
 import {
   ProductForm,
   type ProductFormRef,
@@ -53,26 +53,29 @@ export function CreateProductModal() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger asChild>
         <Button>
-          <Plus data-icon="inline-start" />
+          <Plus data-icon="inline-start" aria-hidden="true" />
           Create Product
         </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create Product</DialogTitle>
-          <DialogDescription>
-            Add a product to the active organization. Optionally add variants
-            now or manage them later from the product detail page.
-          </DialogDescription>
-        </DialogHeader>
+      </SheetTrigger>
+      <SheetContent className="sm:max-w-xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Create Product</SheetTitle>
+          <SheetDescription>
+            Add a new product. Variants can be added now or later.
+          </SheetDescription>
+        </SheetHeader>
 
         {submitError ? (
-          <p className="text-sm text-destructive" role="alert">
-            {submitError}
-          </p>
+          <div
+            className="flex items-start gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+            role="alert"
+          >
+            <AlertCircle className="size-4 shrink-0 mt-1" aria-hidden="true" />
+            <span>{submitError}</span>
+          </div>
         ) : null}
 
         <ProductForm
@@ -90,7 +93,7 @@ export function CreateProductModal() {
             )
           }
         />
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

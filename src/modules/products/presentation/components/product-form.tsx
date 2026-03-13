@@ -1,13 +1,15 @@
 "use client";
 
-import {
-  useState,
-  useImperativeHandle,
-  type ReactNode,
-} from "react";
+import { useState, useImperativeHandle, type ReactNode } from "react";
 import { useForm } from "@tanstack/react-form";
 import { useStore } from "@tanstack/react-store";
-import { Plus, Trash2, Loader2Icon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Loader2Icon,
+  CheckCircle2Icon,
+  XCircleIcon,
+} from "lucide-react";
 import { Button } from "@/shared/presentation/components/ui/button";
 import {
   Field,
@@ -37,7 +39,8 @@ import {
 import type { ProductImage } from "@/modules/products/domain/product-image.entity";
 
 export type ProductFormRef = {
-  cleanupUnsavedImages: () => Promise<ProductImage[]>;
+  cleanupUnsavedImages: (originalKeys?: Set<string>) => Promise<ProductImage[]>;
+  reset: () => void;
 };
 
 export type ProductWithVariantsFormValues = ProductFormValues & {
@@ -50,6 +53,9 @@ type ProductFormProps = {
   isPending?: boolean;
   submitLabel?: ReactNode;
   ref?: React.RefObject<ProductFormRef | null>;
+  initialValues?: ProductWithVariantsFormValues;
+  excludeId?: string;
+  showVariantsToggle?: boolean;
 };
 
 const DEFAULT_VARIANT: VariantFieldValues = {
@@ -67,17 +73,22 @@ export function ProductForm({
   isPending,
   submitLabel = "Create",
   ref,
+  initialValues,
+  excludeId,
+  showVariantsToggle = true,
 }: ProductFormProps) {
-  const [showVariants, setShowVariants] = useState(false);
+  const [showVariants, setShowVariants] = useState(
+    initialValues?.variants?.length ? initialValues.variants.length > 0 : false,
+  );
 
   const form = useForm({
-    defaultValues: {
+    defaultValues: initialValues ?? {
       name: "",
       slug: "",
       description: "",
       images: [] as ProductImage[],
       variants: [] as VariantFieldValues[],
-    } as ProductWithVariantsFormValues,
+    },
     onSubmit: async ({ value }) => {
       await onSubmit(value);
     },
@@ -88,12 +99,19 @@ export function ProductForm({
   useImperativeHandle(
     ref,
     () => ({
-      cleanupUnsavedImages: async () => {
+      cleanupUnsavedImages: async (originalKeys?: Set<string>) => {
         const currentImages =
           (form.getFieldValue("images") as ProductImage[] | undefined) ?? [];
-        await cleanupImages(currentImages);
+        if (originalKeys) {
+          await cleanupImages(
+            currentImages.filter((img) => !originalKeys.has(img.key)),
+          );
+        } else {
+          await cleanupImages(currentImages);
+        }
         return currentImages;
       },
+      reset: () => form.reset(),
     }),
     [form, cleanupImages],
   );
@@ -103,13 +121,16 @@ export function ProductForm({
 
   const slugCheck = useCheckSlugQuery({
     slug: debouncedSlug,
+    excludeId,
     enabled: debouncedSlug.length >= 3,
   });
 
   const slugIsChecking =
     rawSlug !== debouncedSlug || (slugCheck.isFetching && !slugCheck.isError);
   const slugTaken =
-    !slugIsChecking && slugCheck.data !== undefined && !slugCheck.data.available;
+    !slugIsChecking &&
+    slugCheck.data !== undefined &&
+    !slugCheck.data.available;
 
   return (
     <form
@@ -118,7 +139,7 @@ export function ProductForm({
         event.stopPropagation();
         form.handleSubmit();
       }}
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-6 px-6 pb-4"
     >
       {/* Product Information */}
       <FieldSet>
@@ -183,38 +204,43 @@ export function ProductForm({
                       slugTaken
                         ? "border-destructive pr-8 focus-visible:ring-destructive"
                         : slugCheck.data?.available
-                          ? "border-green-500 pr-8 focus-visible:ring-green-500"
+                          ? "border-success pr-8 focus-visible:ring-success"
                           : "pr-8"
                     }
                   />
                   {field.state.value.length >= 3 && (
-                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <span
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      aria-hidden="true"
+                    >
                       {slugIsChecking ? (
                         <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
                       ) : slugTaken ? (
                         <XCircleIcon className="size-4 text-destructive" />
                       ) : slugCheck.data?.available ? (
-                        <CheckCircle2Icon className="size-4 text-green-500" />
+                        <CheckCircle2Icon className="size-4 text-success" />
                       ) : null}
                     </span>
                   )}
                 </div>
                 <FieldError errors={field.state.meta.errors} />
-                {slugTaken && !field.state.meta.errors.length && (
-                  <p className="text-sm font-medium text-destructive">
-                    This slug is already in use by another product.
-                  </p>
-                )}
-                {slugIsChecking && field.state.value.length >= 3 && (
-                  <p className="text-xs text-muted-foreground">
-                    Checking availability…
-                  </p>
-                )}
-                {!slugIsChecking &&
-                  slugCheck.data?.available &&
-                  field.state.value.length >= 3 && (
-                    <p className="text-xs text-green-600">Slug is available.</p>
+                <div aria-live="polite" aria-atomic="true">
+                  {slugTaken && !field.state.meta.errors.length && (
+                    <p className="text-sm font-medium text-destructive">
+                      This slug is already in use by another product.
+                    </p>
                   )}
+                  {slugIsChecking && field.state.value.length >= 3 && (
+                    <p className="text-xs text-muted-foreground">
+                      Checking availability…
+                    </p>
+                  )}
+                  {!slugIsChecking &&
+                    slugCheck.data?.available &&
+                    field.state.value.length >= 3 && (
+                      <p className="text-xs text-success">Slug is available.</p>
+                    )}
+                </div>
               </Field>
             )}
           </form.Field>
@@ -258,101 +284,113 @@ export function ProductForm({
       </FieldSet>
 
       {/* Variants Section */}
-      <FieldSet>
-        <div className="flex items-center justify-between">
-          <FieldLegend>Variants</FieldLegend>
-          <div className="flex items-center gap-2">
-            <Switch
-              id="custom-variants-toggle"
-              checked={showVariants}
-              onCheckedChange={(checked) => {
-                setShowVariants(checked);
-                if (!checked) {
-                  form.setFieldValue("variants", []);
-                }
-              }}
-              disabled={isPending}
-            />
-            <Label htmlFor="custom-variants-toggle" className="text-sm">
-              Add custom variants
-            </Label>
+      {showVariantsToggle && (
+        <FieldSet>
+          <div className="flex items-center justify-between">
+            <FieldLegend>Variants</FieldLegend>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="custom-variants-toggle"
+                checked={showVariants}
+                onCheckedChange={(checked) => {
+                  setShowVariants(checked);
+                  if (!checked) {
+                    form.setFieldValue("variants", []);
+                  }
+                }}
+                disabled={isPending}
+              />
+              <Label htmlFor="custom-variants-toggle" className="text-sm">
+                Add custom variants
+              </Label>
+            </div>
           </div>
-        </div>
 
-        {!showVariants ? (
-          <p className="text-sm text-muted-foreground">
-            A default variant will be generated automatically with an
-            auto-generated SKU and $0.00 price.
-          </p>
-        ) : (
-          <form.Field name="variants" mode="array">
-            {(field) => {
-              const variantsValue = field.state.value as VariantFieldValues[];
+          {!showVariants ? (
+            <p className="text-sm text-muted-foreground">
+              A default variant will be generated automatically with an
+              auto-generated SKU and $0.00 price.
+            </p>
+          ) : (
+            <form.Field name="variants" mode="array">
+              {(field) => {
+                const variantsValue = field.state.value as VariantFieldValues[];
 
-              return (
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={isPending}
-                      onClick={() =>
-                        field.pushValue({
-                          ...DEFAULT_VARIANT,
-                          isDefault: variantsValue.length === 0,
-                        })
-                      }
-                    >
-                      <Plus data-icon="inline-start" />
-                      Add Variant
-                    </Button>
-                  </div>
-
-                  {variantsValue.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      No variants added yet. Click &quot;Add Variant&quot; to
-                      get started, or toggle off to auto-generate a default.
-                    </p>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {variantsValue.map((_, index) => (
-                        <div key={index} className="relative">
-                          <form.Field name={`variants[${index}]`}>
-                            {(variantField) => (
-                              <VariantFormFields
-                                field={variantField}
-                                index={index}
-                                disabled={isPending}
-                              />
-                            )}
-                          </form.Field>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-destructive"
-                            disabled={isPending}
-                            onClick={() => field.removeValue(index)}
-                            aria-label={`Remove variant ${index + 1}`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      ))}
+                return (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isPending}
+                        onClick={() =>
+                          field.pushValue({
+                            ...DEFAULT_VARIANT,
+                            isDefault: variantsValue.length === 0,
+                          })
+                        }
+                      >
+                        <Plus data-icon="inline-start" aria-hidden="true" />
+                        Add Variant
+                      </Button>
                     </div>
-                  )}
-                </div>
-              );
-            }}
-          </form.Field>
-        )}
-      </FieldSet>
+
+                    {variantsValue.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No variants added yet. Click &quot;Add Variant&quot; to
+                        get started, or toggle off to auto-generate a default.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        {variantsValue.map((_, index) => (
+                          <div key={index} className="relative">
+                            <form.Field name={`variants[${index}]`}>
+                              {(variantField) => (
+                                <VariantFormFields
+                                  field={variantField}
+                                  index={index}
+                                  disabled={isPending}
+                                />
+                              )}
+                            </form.Field>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-2 right-2 h-10 w-10 text-muted-foreground hover:text-destructive"
+                              disabled={isPending}
+                              onClick={() => field.removeValue(index)}
+                              aria-label={`Remove variant ${index + 1}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }}
+            </form.Field>
+          )}
+        </FieldSet>
+      )}
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={isPending || slugTaken || slugIsChecking}>
+        <Button
+          type="submit"
+          disabled={isPending || slugTaken || slugIsChecking}
+        >
           {submitLabel}
         </Button>
+        {(slugTaken || slugIsChecking) && !isPending && (
+          <p className="text-xs text-muted-foreground ml-2 self-center">
+            {slugIsChecking
+              ? "Waiting for slug validation…"
+              : "Please choose an available slug."}
+          </p>
+        )}
       </div>
     </form>
   );
