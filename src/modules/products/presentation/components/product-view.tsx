@@ -3,7 +3,15 @@
 import { useBreadcrumbOverride } from "@/shared/presentation/hooks/use-breadcrumbs";
 import { useProductQuery } from "../hooks/use-product-query";
 import { Button } from "@/shared/presentation/components/ui/button";
-import { ArrowLeft, Info, Pencil, Trash2 } from "lucide-react";
+import { Separator } from "@/shared/presentation/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/presentation/components/ui/dropdown-menu";
+import { ArrowLeft, Info, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Skeleton } from "@/shared/presentation/components/ui/skeleton";
 import { EditProductModal } from "./edit-product-modal";
@@ -16,6 +24,11 @@ import { EditVariantModal } from "@/modules/variants/presentation/components/edi
 import { DeleteVariantAlert } from "@/modules/variants/presentation/components/delete-variant-alert";
 import { ProductImageGallery } from "./product-image-gallery";
 
+const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "long",
+  timeStyle: "short",
+});
+
 export function ProductView({ slug }: { slug: string }) {
   const { data: product, isLoading, error } = useProductQuery(slug);
   const router = useRouter();
@@ -24,56 +37,45 @@ export function ProductView({ slug }: { slug: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6 w-full mx-auto">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-md" />
-          <Skeleton className="h-8 w-48" />
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="flex flex-col gap-2 p-6 border rounded-lg bg-card text-card-foreground shadow-sm">
-            <div className="border-b pb-3 mb-1">
-              <Skeleton className="h-6 w-48" />
-            </div>
-            <div className="space-y-4 mt-2">
-              <div>
-                <Skeleton className="h-4 w-12 mb-2" />
-                <Skeleton className="h-6 w-3/4" />
-              </div>
-              <div>
-                <Skeleton className="h-4 w-10 mb-2" />
-                <Skeleton className="h-6 w-1/2" />
-              </div>
-              <div>
-                <Skeleton className="h-4 w-20 mb-2" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div>
-                <Skeleton className="h-4 w-6 mb-2" />
-                <Skeleton className="h-5 w-full" />
-              </div>
+      <div className="flex flex-col gap-8 w-full max-w-5xl mx-auto">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-9 rounded-md" />
+            <div className="flex flex-col gap-1.5">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-8 w-56" />
             </div>
           </div>
+          <Skeleton className="h-9 w-9 rounded-md" />
+        </div>
 
-          <div className="flex flex-col gap-2 p-6 border rounded-lg bg-card text-card-foreground shadow-sm">
-            <div className="border-b pb-3 mb-1">
-              <Skeleton className="h-6 w-32" />
+        {/* Detail fields skeleton */}
+        <div className="flex flex-col gap-5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-1.5">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className={i === 2 ? "h-10 w-full" : "h-5 w-2/3"} />
             </div>
-            <div className="space-y-4 mt-2">
-              <div>
-                <Skeleton className="h-4 w-20 mb-2" />
-                <Skeleton className="h-5 w-2/3" />
-              </div>
-              <div>
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-5 w-2/3" />
-              </div>
+          ))}
+          <Separator />
+          <div className="flex gap-8">
+            <div className="flex flex-col gap-1.5">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-4 w-40" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-4 w-40" />
             </div>
           </div>
         </div>
 
+        <Separator />
+
+        {/* Images skeleton */}
         <div className="flex flex-col gap-3">
-          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-5 w-16" />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="aspect-square rounded-lg" />
@@ -81,9 +83,12 @@ export function ProductView({ slug }: { slug: string }) {
           </div>
         </div>
 
+        <Separator />
+
+        {/* Variants skeleton */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-5 w-16" />
             <Skeleton className="h-9 w-28" />
           </div>
           <Skeleton className="h-32 w-full" />
@@ -94,7 +99,7 @@ export function ProductView({ slug }: { slug: string }) {
 
   if (error || !product) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 gap-4">
+      <div role="alert" className="flex flex-col items-center justify-center p-8 gap-4">
         <p className="text-destructive font-medium border border-destructive/20 bg-destructive/10 px-4 py-2 rounded-md">
           {error?.message || "Product not found."}
         </p>
@@ -109,109 +114,124 @@ export function ProductView({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full mx-auto">
+    <div className="flex flex-col gap-8 w-full max-w-5xl mx-auto">
+      {/* Page header */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" asChild aria-label="Back to products">
             <Link href="/products">
               <ArrowLeft className="h-4 w-4" />
-              <span className="sr-only">Back</span>
             </Link>
           </Button>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Product Details
-          </h1>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-0.5">
+              Product Details
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <EditProductModal product={product}>
-            <Button variant="outline" size="sm">
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" aria-label="Product actions">
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
-          </EditProductModal>
-          <DeleteProductAlert
-            product={product}
-            onDeleted={() => router.push("/products")}
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <EditProductModal product={product}>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <Pencil className="h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+            </EditProductModal>
+            <DropdownMenuSeparator />
+            <DeleteProductAlert
+              product={product}
+              onDeleted={() => router.push("/products")}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
-          </DeleteProductAlert>
-        </div>
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={(e) => e.preventDefault()}
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DeleteProductAlert>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="flex flex-col gap-2 p-6 border rounded-lg bg-card text-card-foreground shadow-sm">
-          <h3 className="font-semibold text-lg border-b pb-2 mb-2">
-            General Information
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Name</p>
-              <p className="text-base font-medium">{product.name}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Slug</p>
-              <p className="text-sm font-mono bg-muted px-2 py-1 rounded inline-flex">
-                {product.slug}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Description
-              </p>
-              <p className="text-sm">
-                {product.description || "No description provided."}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">ID</p>
-              <p className="text-sm font-mono text-muted-foreground">
-                {product.id}
-              </p>
-            </div>
+      {/* Product details */}
+      <section aria-labelledby="details-heading">
+        <h2 id="details-heading" className="sr-only">
+          Product Details
+        </h2>
+        <dl className="flex flex-col gap-5">
+          <div>
+            <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+              Name
+            </dt>
+            <dd className="text-sm font-medium">{product.name}</dd>
           </div>
-        </div>
 
-        <div className="flex flex-col gap-2 p-6 border rounded-lg bg-card text-card-foreground shadow-sm">
-          <h3 className="font-semibold text-lg border-b pb-2 mb-2">Metadata</h3>
-          <div className="space-y-4">
+          <div>
+            <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+              Slug
+            </dt>
+            <dd className="text-sm font-mono bg-muted px-2 py-1 rounded inline-flex">
+              {product.slug}
+            </dd>
+          </div>
+
+          <div>
+            <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+              Description
+            </dt>
+            <dd className={product.description ? "text-sm" : "text-sm text-muted-foreground"}>
+              {product.description || "—"}
+            </dd>
+          </div>
+
+          <div>
+            <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+              ID
+            </dt>
+            <dd className="text-xs font-mono text-muted-foreground">{product.id}</dd>
+          </div>
+
+          <Separator />
+
+          {/* Metadata timestamps */}
+          <div className="flex flex-wrap gap-x-10 gap-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Created At
-              </p>
-              <p className="text-sm">
-                {new Intl.DateTimeFormat("en-US", {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                }).format(new Date(product.createdAt))}
-              </p>
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                Created
+              </dt>
+              <dd className="text-sm">{DATE_FORMAT.format(new Date(product.createdAt))}</dd>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
                 Last Updated
-              </p>
-              <p className="text-sm">
-                {new Intl.DateTimeFormat("en-US", {
-                  dateStyle: "long",
-                  timeStyle: "short",
-                }).format(new Date(product.updatedAt))}
-              </p>
+              </dt>
+              <dd className="text-sm">{DATE_FORMAT.format(new Date(product.updatedAt))}</dd>
             </div>
           </div>
-        </div>
-      </div>
+        </dl>
+      </section>
 
-      <div className="flex flex-col gap-3">
-        <h3 className="font-semibold text-lg">Images</h3>
+      <Separator />
+
+      {/* Images */}
+      <section aria-labelledby="images-heading" className="flex flex-col gap-3">
+        <h2 id="images-heading" className="font-semibold text-base">
+          Images
+        </h2>
         <ProductImageGallery images={product.images} />
-      </div>
+      </section>
 
+      <Separator />
+
+      {/* Variants */}
       <VariantsSection productId={product.id} />
     </div>
   );
@@ -228,14 +248,16 @@ function VariantsSection({ productId }: { productId: string }) {
     variants[0].sku.startsWith("AUTO-");
 
   return (
-    <div className="flex flex-col gap-3">
+    <section aria-labelledby="variants-heading" className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-lg">Variants</h3>
+        <h2 id="variants-heading" className="font-semibold text-base">
+          Variants
+        </h2>
         <CreateVariantModal productId={productId} />
       </div>
       {hasOnlyAutoDefault && (
-        <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
-          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-primary/90">
+          <Info aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
           <p>
             This product has an auto-generated default variant. You can add
             custom variants with specific SKUs and pricing from the management
@@ -255,6 +277,6 @@ function VariantsSection({ productId }: { productId: string }) {
           </>
         )}
       />
-    </div>
+    </section>
   );
 }
