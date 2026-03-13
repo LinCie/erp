@@ -14,6 +14,7 @@ import { VariantListView } from "@/modules/variants/presentation/components/vari
 import { CreateVariantModal } from "@/modules/variants/presentation/components/create-variant-modal";
 import { EditVariantModal } from "@/modules/variants/presentation/components/edit-variant-modal";
 import { DeleteVariantAlert } from "@/modules/variants/presentation/components/delete-variant-alert";
+import { ProductImageGallery } from "./product-image-gallery";
 
 export function ProductView({ slug }: { slug: string }) {
   const { data: product, isLoading, error } = useProductQuery(slug);
@@ -69,6 +70,23 @@ export function ProductView({ slug }: { slug: string }) {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-6 w-20" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-square rounded-lg" />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-9 w-28" />
+          </div>
+          <Skeleton className="h-32 w-full" />
         </div>
       </div>
     );
@@ -187,6 +205,11 @@ export function ProductView({ slug }: { slug: string }) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <h3 className="font-semibold text-lg">Images</h3>
+        <ProductImageGallery images={product.images} />
       </div>
 
       <VariantsSection productId={product.id} />

@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/shared/presentation/libraries/api-client";
 import { productKeys } from "../hooks/product-keys";
+import type { ProductImage } from "@/modules/products/domain/product-image.entity";
 
 type VariantInput = {
   name: string;
@@ -19,6 +20,7 @@ type CreateProductWithVariantsInput = {
   name: string;
   slug: string;
   description: string;
+  images?: ProductImage[];
   variants?: VariantInput[];
 };
 
@@ -33,6 +35,7 @@ export function useCreateProductWithVariants() {
         name: input.name.trim(),
         slug: input.slug.trim(),
         description: input.description.trim() || null,
+        images: input.images,
         variants:
           input.variants && input.variants.length > 0
             ? input.variants

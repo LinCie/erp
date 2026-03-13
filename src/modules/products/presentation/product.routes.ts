@@ -50,6 +50,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
           description: body.description ?? null,
           slug: body.slug,
           organizationId: organization.id,
+          images: body.images,
           variants:
             body.variants && body.variants.length > 0
               ? body.variants

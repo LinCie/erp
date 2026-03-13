@@ -4,12 +4,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/shared/presentation/libraries/api-client";
 import { productKeys } from "./product-keys";
+import type { ProductImage } from "@/modules/products/domain/product-image.entity";
 
 type UpdateProductInput = {
   id: string;
   slug: string;
   name: string;
   description: string;
+  images?: ProductImage[];
 };
 
 export function useUpdateProductMutation() {
@@ -21,6 +23,7 @@ export function useUpdateProductMutation() {
         name: input.name.trim(),
         slug: input.slug.trim(),
         description: input.description.trim() || null,
+        images: input.images,
       });
 
       if (response.error) {
