@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/shared/presentation/components/ui/button";
+import { cn } from "@/shared/presentation/libraries/utils";
 import {
   Pagination,
   PaginationContent,
@@ -44,7 +45,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/presentation/components/ui/table";
-import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
 import type {
   ProductSortField,
   ProductSortOrder,
@@ -94,7 +94,7 @@ function getSortIcon(sortOrder: ProductSortOrder | undefined) {
   return <ArrowUpDown data-icon="inline-end" />;
 }
 
-function createColumns(
+function useColumns(
   sortBy: ProductSortField,
   sortOrder: ProductSortOrder,
   onSortChange: (field: ProductSortField) => void,
@@ -104,75 +104,96 @@ function createColumns(
     sortOrder: ProductSortOrder;
   },
 ): ColumnDef<Product>[] {
-  const renderSortableHeader = (field: ProductSortField, label: string) => (
-    <Button variant="ghost" onClick={() => onSortChange(field)}>
-      {label}
-      {getSortIcon(sortBy === field ? sortOrder : undefined)}
-    </Button>
-  );
+  return useMemo(() => {
+    const getAriaSort = (
+      field: ProductSortField,
+    ): "ascending" | "descending" | "none" => {
+      if (sortBy !== field) return "none";
+      return sortOrder === "asc" ? "ascending" : "descending";
+    };
 
-  return [
-    {
-      accessorKey: "name",
-      header: () => renderSortableHeader("name", "Name"),
-    },
-    {
-      accessorKey: "slug",
-      header: () => renderSortableHeader("slug", "Slug"),
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ row }) => row.original.description || "No description",
-    },
-    {
-      accessorKey: "createdAt",
-      header: () => renderSortableHeader("createdAt", "Created"),
-      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
-    },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        const product = row.original;
+    const renderSortableHeader = (field: ProductSortField, label: string) => (
+      <Button
+        variant="ghost"
+        onClick={() => onSortChange(field)}
+        aria-sort={getAriaSort(field)}
+      >
+        {label}
+        {getSortIcon(sortBy === field ? sortOrder : undefined)}
+      </Button>
+    );
 
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/products/${product.slug}`}
-                  className="group w-full cursor-pointer font-medium"
-                  target="_blank"
-                >
-                  <Search className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
-                  View
-                </Link>
-              </DropdownMenuItem>
-              <EditProductModal product={product} />
-              <DropdownMenuSeparator />
-              <DeleteProductAlert
-                product={product}
-                filters={{
-                  search: filters.search,
-                  sortBy: filters.sortBy,
-                  sortOrder: filters.sortOrder,
-                }}
-              />
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
+    return [
+      {
+        accessorKey: "name",
+        header: () => renderSortableHeader("name", "Name"),
       },
-    },
-  ];
+      {
+        accessorKey: "slug",
+        header: () => renderSortableHeader("slug", "Slug"),
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ row }) =>
+          row.original.description ? (
+            row.original.description
+          ) : (
+            <span className="text-muted-foreground italic">No description</span>
+          ),
+      },
+      {
+        accessorKey: "createdAt",
+        header: () => renderSortableHeader("createdAt", "Created"),
+        cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          const product = row.original;
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-11 w-11 p-0"
+                  aria-label={`Actions for ${product.name}`}
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="group w-full cursor-pointer font-medium"
+                    target="_blank"
+                  >
+                    <Search className="mr-2 h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+                    View
+                  </Link>
+                </DropdownMenuItem>
+                <EditProductModal product={product} />
+                <DropdownMenuSeparator />
+                <DeleteProductAlert
+                  product={product}
+                  filters={{
+                    search: filters.search,
+                    sortBy: filters.sortBy,
+                    sortOrder: filters.sortOrder,
+                  }}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ];
+  }, [sortBy, sortOrder, onSortChange, filters]);
 }
 
 export function ProductsListView({
@@ -183,72 +204,84 @@ export function ProductsListView({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const searchParamsString = searchParams.toString();
 
-  const [search, setSearch] = useState(initialSearch);
-  const debouncedSearch = useDebouncedValue(search, 400);
+  const [searchInput, setSearchInput] = useState(initialSearch);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const rawSortBy = searchParams.get("sortBy");
-  const rawSortOrder = searchParams.get("sortOrder");
   const sortBy = isSortField(rawSortBy) ? rawSortBy : initialSortBy;
+
+  const rawSortOrder = searchParams.get("sortOrder");
   const sortOrder = isSortOrder(rawSortOrder) ? rawSortOrder : initialSortOrder;
 
   const rawPage = searchParams.get("page");
   const page = rawPage ? Math.max(1, parseInt(rawPage, 10) || 1) : DEFAULT_PAGE;
 
-  useEffect(() => {
-    const params = new URLSearchParams(searchParamsString);
-    setSearch(params.get("search") ?? initialSearch);
-  }, [initialSearch, searchParamsString]);
+  const search = searchParams.get("search") ?? initialSearch;
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParamsString);
-    const nextSearch = debouncedSearch.trim();
+    setSearchInput(search);
+  }, [search]);
 
-    if (nextSearch) {
-      params.set("search", nextSearch);
-    } else {
-      params.delete("search");
+  const updateUrl = (updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
     }
-
-    if (sortBy === DEFAULT_SORT_BY) {
-      params.delete("sortBy");
-    } else {
-      params.set("sortBy", sortBy);
-    }
-
-    if (sortOrder === DEFAULT_SORT_ORDER) {
-      params.delete("sortOrder");
-    } else {
-      params.set("sortOrder", sortOrder);
-    }
-
-    // Reset to page 1 when search changes
-    params.delete("page");
 
     const nextQuery = params.toString();
-    const currentQuery = searchParamsString;
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+      scroll: false,
+    });
+  };
 
-    if (nextQuery !== currentQuery) {
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
-        scroll: false,
-      });
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
-  }, [
-    debouncedSearch,
-    pathname,
-    router,
-    searchParamsString,
-    sortBy,
-    sortOrder,
-  ]);
+
+    debounceRef.current = setTimeout(() => {
+      const trimmed = value.trim();
+      updateUrl({
+        search: trimmed || null,
+        page: null,
+      });
+    }, 400);
+  };
+
+  const handleSortChange = (field: ProductSortField) => {
+    const nextOrder: ProductSortOrder =
+      sortBy === field && sortOrder === "asc" ? "desc" : "asc";
+
+    const params: Record<string, string | null> = {
+      sortBy: field === DEFAULT_SORT_BY ? null : field,
+      sortOrder: nextOrder === DEFAULT_SORT_ORDER ? null : nextOrder,
+      page: null,
+    };
+
+    updateUrl(params);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    updateUrl({
+      page: newPage <= 1 ? null : String(newPage),
+    });
+  };
 
   const {
     data: result,
     isLoading,
     error,
+    refetch,
   } = useProductsQuery({
-    search: debouncedSearch,
+    search,
     page,
     limit: DEFAULT_LIMIT,
     sortBy,
@@ -258,21 +291,11 @@ export function ProductsListView({
   const products = result?.data ?? [];
   const metadata = result?.metadata;
 
-  const columns = createColumns(
+  const columns = useColumns(
     sortBy,
     sortOrder,
-    (field) => {
-      const params = new URLSearchParams(searchParamsString);
-      const nextOrder: ProductSortOrder =
-        sortBy === field && sortOrder === "asc" ? "desc" : "asc";
-
-      params.set("sortBy", field);
-      params.set("sortOrder", nextOrder);
-      params.delete("page");
-
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    { search: debouncedSearch, sortBy, sortOrder },
+    handleSortChange,
+    { search, sortBy, sortOrder },
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -282,42 +305,38 @@ export function ProductsListView({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParamsString);
-
-    if (newPage <= 1) {
-      params.delete("page");
-    } else {
-      params.set("page", String(newPage));
-    }
-
-    const nextQuery = params.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
-      scroll: false,
-    });
-  };
+  const skeletonRows = useMemo(
+    () => Array.from({ length: Math.min(DEFAULT_LIMIT, metadata?.total ?? DEFAULT_LIMIT) }),
+    [metadata?.total],
+  );
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Products</h1>
-        <div className="flex items-center gap-3">
-          <Input
-            placeholder="Search products..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className="max-w-sm"
-          />
-          <Link href="/products/trash">
-            <Button variant="outline" size="sm">
-              Trash
-            </Button>
-          </Link>
-          <CreateProductModal />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              value={searchInput}
+              onChange={(event) => handleSearchChange(event.target.value)}
+              className="w-full pl-10 sm:w-64 md:w-80"
+              aria-label="Search products"
+            />
+          </div>
+          <div className="flex gap-2">
+            <CreateProductModal />
+            <Link href="/products/trash">
+              <Button variant="ghost" size="sm" aria-label="View deleted products in trash">
+                Trash
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -337,22 +356,22 @@ export function ProductsListView({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: DEFAULT_LIMIT }).map((_, index) => (
+              skeletonRows.map((_, index) => (
                 <TableRow key={index}>
                   <TableCell>
-                    <Skeleton className="h-4 w-[150px]" />
+                    <Skeleton className="h-4 w-37.5" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-[120px]" />
+                    <Skeleton className="h-4 w-30" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-full max-w-[250px]" />
+                    <Skeleton className="h-4 w-full max-w-62.5" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-4 w-[100px]" />
+                    <Skeleton className="h-4 w-25" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-8 w-8 rounded-md" />
+                    <Skeleton className="h-11 w-11 rounded-md" />
                   </TableCell>
                 </TableRow>
               ))
@@ -361,8 +380,18 @@ export function ProductsListView({
                 <TableCell
                   colSpan={columns.length}
                   className="h-24 text-center"
+                  role="status"
                 >
-                  Could not load products. Please try again.
+                  <div className="flex flex-col items-center gap-2">
+                    <p>Could not load products.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refetch()}
+                    >
+                      Try again
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows.length ? (
@@ -378,13 +407,38 @@ export function ProductsListView({
                   ))}
                 </TableRow>
               ))
+            ) : search ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                  role="status"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <p>No products match &ldquo;{search}&rdquo;</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSearchChange("")}
+                    >
+                      Clear search
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
             ) : (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
                   className="h-24 text-center"
+                  role="status"
                 >
-                  No products found.
+                  <div className="flex flex-col items-center gap-2">
+                    <p>No products yet</p>
+                    <p className="text-sm text-muted-foreground">
+                      Create your first product to get started.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -393,8 +447,8 @@ export function ProductsListView({
       </div>
 
       {metadata && metadata.totalPages > 1 ? (
-        <div className="flex items-center justify-between px-2">
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground" role="status">
             Showing {(page - 1) * DEFAULT_LIMIT + 1}–
             {Math.min(page * DEFAULT_LIMIT, metadata.total)} of {metadata.total}{" "}
             products
@@ -405,14 +459,14 @@ export function ProductsListView({
                 <PaginationPrevious
                   onClick={(e) => {
                     e.preventDefault();
-                    handlePageChange(page - 1);
+                    if (page > 1) handlePageChange(page - 1);
                   }}
                   aria-disabled={page <= 1}
-                  className={
-                    page <= 1
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
+                  tabIndex={page <= 1 ? -1 : undefined}
+                  className={cn(
+                    page <= 1 && "cursor-not-allowed opacity-50",
+                    page > 1 && "cursor-pointer",
+                  )}
                 />
               </PaginationItem>
               {Array.from({ length: metadata.totalPages }, (_, i) => i + 1)
@@ -440,6 +494,7 @@ export function ProductsListView({
                           handlePageChange(item);
                         }}
                         className="cursor-pointer"
+                        aria-current={item === page ? "page" : undefined}
                       >
                         {item}
                       </PaginationLink>
@@ -450,14 +505,14 @@ export function ProductsListView({
                 <PaginationNext
                   onClick={(e) => {
                     e.preventDefault();
-                    handlePageChange(page + 1);
+                    if (page < metadata.totalPages) handlePageChange(page + 1);
                   }}
                   aria-disabled={page >= metadata.totalPages}
-                  className={
-                    page >= metadata.totalPages
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
+                  tabIndex={page >= metadata.totalPages ? -1 : undefined}
+                  className={cn(
+                    page >= metadata.totalPages && "cursor-not-allowed opacity-50",
+                    page < metadata.totalPages && "cursor-pointer",
+                  )}
                 />
               </PaginationItem>
             </PaginationContent>

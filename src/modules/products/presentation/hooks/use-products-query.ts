@@ -33,7 +33,7 @@ export function useProductsQuery({
       totalPages: number;
     };
   }>({
-    queryKey: productKeys.list({ search, sortBy, sortOrder }),
+    queryKey: productKeys.list({ search, page, sortBy, sortOrder }),
     queryFn: async ({ signal }) => {
       const response = await api.products.get({
         query: {
