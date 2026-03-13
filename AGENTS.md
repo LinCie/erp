@@ -1,10 +1,8 @@
 # erp Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-10
-
 ## Active Technologies
 
-- TypeScript 5.x with strict mode + Elysia 1.4+, Next.js 16+, React 19+, Kysely ORM, TanStack Form/Query (001-product-variants)
+- TypeScript 5.x with strict mode + Elysia 1.4+, Next.js 16+, React 19+, Kysely ORM, TanStack Form/Query
 
 ## Project Structure
 
@@ -45,11 +43,6 @@ bun run db:status        # List migration status
 bun run db:codegen       # Regenerate DB types from schema
 ```
 
-**Note**: Testing framework not yet configured. When adding tests:
-- Use Vitest for unit tests
-- Use Playwright for E2E tests
-- Run single test: `bun test <pattern>`
-
 ## Code Style
 
 ### TypeScript
@@ -58,25 +51,6 @@ bun run db:codegen       # Regenerate DB types from schema
 - Use `type` over `interface` for simple type definitions
 - Explicit return types on all exported functions
 - Use `readonly` arrays and objects where mutation is not expected
-
-### Imports
-
-Order: External libs → Internal modules (`@/`) → Relative imports
-
-```typescript
-// 1. External libraries
-import { Elysia } from "elysia";
-import { z } from "zod";
-import { useQuery } from "@tanstack/react-query";
-
-// 2. Internal modules (alias @/)
-import { db } from "@/shared/infrastructure/database";
-import type { ProductEntity } from "@/modules/products/domain/product.entity";
-
-// 3. Relative imports (same module only)
-import { productKeys } from "./product-keys";
-import type { CreateProductInput } from "./types/product.types";
-```
 
 ### Naming Conventions
 
@@ -88,99 +62,9 @@ import type { CreateProductInput } from "./types/product.types";
 - **Classes**: PascalCase (e.g., `ProductService`, `ProductRepositoryImpl`)
 - **Query Keys**: camelCase object factories (e.g., `productKeys`, `userKeys`)
 
-### Module Structure
-
-Each module MUST follow clean architecture layering:
-
-```
-modules/[name]/
-├── domain/
-│   └── [entity].entity.ts
-├── application/
-│   ├── [entity].repository.ts    # Interface
-│   ├── [entity].service.ts       # Business logic
-│   └── types/
-│       └── [entity].types.ts     # Input/Output types
-├── infrastructure/
-│   └── [entity].repository.impl.ts
-└── presentation/
-    ├── [entity].routes.ts
-    ├── components/
-    │   ├── [entity]-list-view.tsx
-    │   ├── [entity]-view.tsx
-    │   ├── create-[entity]-modal.tsx
-    │   └── delete-[entity]-alert.tsx
-    ├── hooks/
-    │   ├── use-[entities]-query.ts
-    │   ├── use-[entity]-query.ts
-    │   ├── use-create-[entity]-mutation.ts
-    │   ├── use-update-[entity]-mutation.ts
-    │   ├── use-delete-[entity]-mutation.ts
-    │   └── [entity]-keys.ts
-    └── schemas/
-        └── [entity]-schema.ts
-```
-
-### Error Handling
-
-- Services throw descriptive errors
-- Repository methods return `undefined` for not found (not null)
-- API routes return typed error responses per status code
-- React Query hooks show toast notifications on errors
-
-### Validation (Zod)
-
-- Define schemas in `presentation/schemas/` files
-- Reuse schemas for API and form validation
-- Export inferred types: `export type X = z.infer<typeof XSchema>`
-
-### Database
-
-- Primary keys use uuidv7 (time-sortable)
-- All entities implement soft delete (`deletedAt` timestamp)
-- Migrations in `src/shared/infrastructure/database/migrations/`
-- Regenerate types after schema changes: `bun run db:codegen`
-
-### React Components
-
-- Use shadcn/ui components from `@/shared/presentation/components/ui`
-- Client components: `'use client'` directive at top
-- Server components: Async functions for data fetching
-- Handle loading states with Skeleton UI
-- Forms use `@tanstack/react-form` with Zod validation
-
-### Query Pattern (TanStack Query)
-
-```typescript
-// Key factories in [entity]-keys.ts
-export const productKeys = {
-  all: ["products"] as const,
-  lists: () => [...productKeys.all, "list"] as const,
-  list: (filters) => [...productKeys.lists(), filters] as const,
-  details: () => [...productKeys.all, "detail"] as const,
-  detail: (slug) => [...productKeys.details(), slug] as const,
-};
-
-// Hooks for each operation
-export function useProductsQuery(filters) { ... }
-export function useCreateProductMutation() { ... }
-```
-
-### Dependency Injection
-
-Services and repositories use constructor injection:
-
-```typescript
-export class ProductService {
-  constructor(private readonly repository: ProductRepository) {}
-}
-```
-
 ## Recent Changes
 
 - 001-product-variants: Added TypeScript 5.x with strict mode + Elysia 1.4+, Next.js 16+, React 19+, Kysely ORM, TanStack Form/Query
-
-<!-- MANUAL ADDITIONS START -->
 
 ## Error Resolution Protocol
 
@@ -193,4 +77,45 @@ When encountering an error (build failure, type error, runtime error, test failu
 
 This ensures solutions are based on current best practices and documented patterns rather than assumptions.
 
-<!-- MANUAL ADDITIONS END -->
+## Design Context
+
+### Users
+Mixed audience of internal employees and B2B customers. Users range from operations staff managing inventory and orders to business clients accessing their account data. They need to accomplish tasks efficiently without feeling overwhelmed by complexity.
+
+### Brand Personality
+**Friendly, Approachable, Smart**
+
+The interface should feel welcoming and unintimidating while conveying competence. Users should feel the system is on their side—helping them work smarter, not harder. Avoid enterprise software sterility; embrace warmth without sacrificing professionalism.
+
+### Aesthetic Direction
+**Calm & Focused**
+
+- **Visual tone**: Clean, spacious, distraction-free. Think Notion's serene workspaces and Slack's friendly productivity.
+- **References**: Notion (minimal, calm, content-focused), Slack (approachable, efficient, delightful micro-interactions)
+- **Anti-references**: Avoid Salesforce/SAP density, avoid aggressive gradients or flashy animations
+- **Theme**: Support both light and dark mode. Light mode should feel airy and open; dark mode should reduce eye strain during extended use.
+
+### Design Principles
+
+1. **Clarity over density** — Prioritize whitespace and visual hierarchy. Don't cram information; guide the eye naturally.
+
+2. **Friendly but not playful** — Warm colors and approachable typography, but never childish. Smart defaults, helpful guidance.
+
+3. **Efficiency through simplicity** — Reduce clicks, not features. Surface the most common actions, hide complexity until needed.
+
+4. **Consistent patterns** — Reuse components and layouts. Users should learn once, apply everywhere.
+
+5. **Accessible by default** — WCAG 2.1 AA compliance. Clear labels, sufficient contrast, keyboard navigation, reduced motion support.
+
+### Color System
+- **Primary**: Purple/violet (oklch(0.457 0.24 277.023)) — conveys intelligence and creativity
+- **Base**: Mauve neutral tones — warm grays that feel approachable, not cold
+- **Semantic**: Green for success, red for destructive actions, maintained across themes
+
+### Typography
+- **Primary**: Roboto — friendly, readable, universally available
+- **Accent**: Geist Sans/Mono — modern, clean for technical content
+
+### Spacing & Radius
+- **Radius**: Subtle rounding (0.1rem base) — soft but not bubbly
+- **Spacing**: Generous whitespace, consistent 4px grid system
