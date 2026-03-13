@@ -1,15 +1,11 @@
 import { z } from "zod";
 
-/**
- * Reusable SKU schema with trim-first normalization.
- *
- * Order of operations:
- * 1. Trim leading/trailing whitespace (via transform)
- * 2. Pipe the trimmed value into min/max/regex validators
- *
- * This ensures copy-pasted SKUs with trailing spaces don't fail
- * the regex check before whitespace is removed.
- */
+export const productImageSchema = z.object({
+  key: z.string(),
+  alt: z.string(),
+  order: z.number(),
+});
+
 const nameSchema = z
   .string()
   .transform((val) => val.trim())
@@ -63,6 +59,7 @@ export const createVariantSchema = z.object({
   costPrice: z.number().min(0, "Cost price must be non-negative").optional(),
   currency: z.string().length(3).default("USD"),
   isDefault: z.boolean().default(false),
+  images: z.array(productImageSchema).max(10, "Maximum 10 images allowed").optional(),
 });
 
 export const updateVariantSchema = createVariantSchema.partial();

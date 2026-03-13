@@ -18,15 +18,20 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldSet,
+  FieldLegend,
 } from "@/shared/presentation/components/ui/field";
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Label } from "@/shared/presentation/components/ui/label";
+import { ImageGalleryUploader } from "@/shared/presentation/components/ui/image-gallery-uploader";
 import { PencilIcon, Loader2Icon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
 import { useUpdateVariantMutation } from "../hooks/use-update-variant-mutation";
 import type { VariantEntity } from "../../domain/variant.entity";
 import { updateVariantSchema } from "../schemas/variant-schema";
 import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
 import { useCheckSkuQuery } from "../hooks/use-check-sku-query";
+import { useImageCleanup } from "@/shared/presentation/hooks/use-image-cleanup";
+import type { ProductImage } from "@/modules/products/domain/product-image.entity";
 
 type EditVariantModalProps = {
   productId: string;
@@ -36,6 +41,7 @@ type EditVariantModalProps = {
 export function EditVariantModal({ productId, variant }: EditVariantModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const updateMutation = useUpdateVariantMutation(productId);
+  const { cleanupNewImages } = useImageCleanup();
 
   const form = useForm({
     defaultValues: {
@@ -46,6 +52,7 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
       costPrice: variant.costPrice ?? undefined,
       currency: variant.currency,
       isDefault: variant.isDefault,
+      images: variant.images as ProductImage[],
     },
     onSubmit: async ({ value }) => {
       try {
@@ -59,11 +66,11 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
             costPrice: value.costPrice,
             currency: value.currency,
             isDefault: value.isDefault,
+            images: value.images,
           },
         });
         setIsOpen(false);
       } catch {
-        // Error is handled by mutation's onError handler (toast)
       }
     },
   });
@@ -95,8 +102,18 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
     skuCheck.data !== undefined &&
     !skuCheck.data.available;
 
+  const handleOpenChange = async (nextOpen: boolean) => {
+    if (!nextOpen) {
+      const currentImages = (form.getFieldValue("images") ?? []) as ProductImage[];
+      const originalKeys = new Set(variant.images.map((img) => img.key));
+      await cleanupNewImages(currentImages, originalKeys);
+      form.reset();
+    }
+    setIsOpen(nextOpen);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon-sm">
           <PencilIcon className="size-4" />
@@ -317,11 +334,26 @@ export function EditVariantModal({ productId, variant }: EditVariantModalProps) 
             </form.Field>
           </FieldGroup>
 
+          <FieldSet>
+            <FieldLegend>Images</FieldLegend>
+            <form.Field name="images">
+              {(field) => (
+                <ImageGalleryUploader
+                  module="products"
+                  images={field.state.value ?? []}
+                  onChange={(images) => field.handleChange(images)}
+                  disabled={updateMutation.isPending}
+                  maxFiles={10}
+                />
+              )}
+            </form.Field>
+          </FieldSet>
+
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() => setIsOpen(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={updateMutation.isPending}
             >
               Cancel
