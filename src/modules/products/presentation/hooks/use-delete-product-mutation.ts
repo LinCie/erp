@@ -12,6 +12,7 @@ type DeleteProductInput = {
 
 type ProductListFilters = {
   search: string;
+  page: number;
   sortBy: string;
   sortOrder: string;
 };
