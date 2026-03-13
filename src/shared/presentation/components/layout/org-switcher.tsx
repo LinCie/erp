@@ -18,7 +18,6 @@ import { authClient } from "../../libraries/auth/auth-client";
 export function OrgSwitcher() {
   const router = useRouter();
   const { data: activeOrg } = authClient.useActiveOrganization();
-  const { data: orgList } = authClient.useListOrganizations();
 
   const handleExit = async () => {
     await authClient.organization.setActive({ organizationId: null });
@@ -43,7 +42,7 @@ export function OrgSwitcher() {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{orgName}</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {orgList?.length || 0} organizations
+                  Active workspace
                 </span>
               </div>
             </SidebarMenuButton>

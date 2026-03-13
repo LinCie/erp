@@ -27,11 +27,27 @@ export default async function AppLayout({
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
+      {/* Skip to main content — visually hidden until focused */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:ring-2 focus:ring-ring focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       <AppSidebar />
-      <main className="flex flex-1 flex-col min-h-screen bg-background">
+
+      {/* Page shell: header above, content below */}
+      <div className="flex flex-1 flex-col">
         <Header />
-        <div className="flex-1 p-6">{children}</div>
-      </main>
+        <main
+          id="main-content"
+          aria-label="Main content"
+          className="flex-1 p-[clamp(1rem,4vw,1.5rem)]"
+        >
+          {children}
+        </main>
+      </div>
     </SidebarProvider>
   );
 }
