@@ -9,6 +9,7 @@ import { Button } from "@/shared/presentation/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from "@/shared/presentation/components/ui/dialog";
 import { api } from "@/shared/presentation/libraries/api-client";
 import type { ProductImage } from "@/modules/products/domain/product-image.entity";
@@ -166,6 +167,7 @@ export function ProductImageGallery({
           className="max-w-4xl p-0 bg-black/90 border-transparent"
           showCloseButton={false}
         >
+          <DialogTitle className="sr-only">Image lightbox</DialogTitle>
           <div className="relative flex items-center justify-center min-h-[50vh] max-h-[80vh]">
             {currentImage && (
               <>
