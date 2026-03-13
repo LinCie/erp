@@ -27,6 +27,7 @@ import type {
 } from "../application/types/product.types";
 import type { ProductRepository } from "../application/product.repository";
 import type { ProductEntity } from "../domain/product.entity";
+import { parseProductImages } from "@/shared/application/utils/parse-images";
 
 export class ProductRepositoryImpl implements ProductRepository {
   async create(input: CreateProductInput): Promise<CreateProductOutput> {
@@ -37,6 +38,7 @@ export class ProductRepositoryImpl implements ProductRepository {
         name: input.name,
         description: input.description,
         slug: input.slug,
+        images: input.images ? JSON.stringify(input.images) : null,
       })
       .returningAll()
       .executeTakeFirstOrThrow();
@@ -123,6 +125,7 @@ export class ProductRepositoryImpl implements ProductRepository {
       name: string;
       description: string | null;
       slug: string;
+      images: string | null;
     }> = {};
 
     if (input.name !== undefined) {
@@ -135,6 +138,10 @@ export class ProductRepositoryImpl implements ProductRepository {
 
     if (input.slug !== undefined) {
       updateData.slug = input.slug;
+    }
+
+    if (input.images !== undefined) {
+      updateData.images = input.images.length > 0 ? JSON.stringify(input.images) : null;
     }
 
     const product = await db
@@ -164,6 +171,7 @@ export class ProductRepositoryImpl implements ProductRepository {
       name: product.name,
       description: product.description,
       slug: product.slug,
+      images: parseProductImages(product.images),
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
       deletedAt: product.deletedAt,

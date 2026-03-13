@@ -57,6 +57,7 @@ export function useCreateVariantMutation(productId: string) {
           costPrice: input.costPrice ?? null,
           currency: input.currency ?? "USD",
           isDefault: input.isDefault ?? false,
+          images: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         };

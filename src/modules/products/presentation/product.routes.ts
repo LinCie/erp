@@ -9,6 +9,7 @@ import {
   PRODUCT_SORT_FIELDS,
   PRODUCT_SORT_ORDERS,
 } from "../application/types/product.types";
+import { productImageSchema } from "./schemas/create-product-schema";
 
 const productService = new ProductService(
   new ProductRepositoryImpl(),
@@ -21,6 +22,7 @@ const ProductSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   slug: z.string(),
+  images: z.array(productImageSchema),
   createdAt: z.date(),
   updatedAt: z.date(),
   deletedAt: z.date().nullable(),
@@ -72,6 +74,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         name: z.string().min(1).max(255),
         description: z.string().nullable(),
         slug: z.string().min(1).max(255),
+        images: z.array(productImageSchema).optional(),
         variants: z
           .array(
             z.object({
@@ -276,6 +279,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         name: z.string().min(1).max(255).optional(),
         description: z.string().nullable().optional(),
         slug: z.string().min(1).max(255).optional(),
+        images: z.array(productImageSchema).optional(),
       }),
       response: {
         200: ProductSchema,
@@ -421,7 +425,10 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         return status(403, { error: "Forbidden" });
       }
 
-      await productService.permanentDelete({ id: params.id, organizationId: organization.id });
+      await productService.permanentDelete({
+        id: params.id,
+        organizationId: organization.id,
+      });
     },
     {
       requireAuth: true,

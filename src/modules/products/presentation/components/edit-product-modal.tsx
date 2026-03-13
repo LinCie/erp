@@ -25,6 +25,7 @@ import {
 } from "@/shared/presentation/components/ui/field";
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Textarea } from "@/shared/presentation/components/ui/textarea";
+import { ImageGalleryUploader } from "@/shared/presentation/components/ui/image-gallery-uploader";
 import {
   productFormSchema,
   type ProductFormValues,
@@ -32,9 +33,11 @@ import {
 } from "../schemas/create-product-schema";
 import { useUpdateProductMutation } from "../hooks/use-update-product-mutation";
 import type { ProductEntity } from "../../domain/product.entity";
+import type { ProductImage } from "../../domain/product-image.entity";
 import { generateSlug } from "../utils/product.utils";
 import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
 import { useCheckSlugQuery } from "../hooks/use-check-slug-query";
+import { useImageCleanup } from "@/shared/presentation/hooks/use-image-cleanup";
 
 type EditProductModalProps = {
   product: ProductEntity;
@@ -45,12 +48,14 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
   const [open, setOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const updateProductMutation = useUpdateProductMutation();
+  const { cleanupNewImages } = useImageCleanup();
 
   const form = useForm({
     defaultValues: {
       name: product.name,
       slug: product.slug,
       description: product.description ?? "",
+      images: product.images as ProductImage[],
     } as ProductFormValues,
     validators: {
       onSubmit: productFormSchema,
@@ -88,13 +93,15 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
   const slugTaken =
     !slugIsChecking && slugCheck.data !== undefined && !slugCheck.data.available;
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-
+  const handleOpenChange = async (nextOpen: boolean) => {
     if (!nextOpen) {
+      const currentImages = (form.getFieldValue("images") ?? []) as ProductImage[];
+      const originalKeys = new Set(product.images.map((img) => img.key));
+      await cleanupNewImages(currentImages, originalKeys);
       setSubmitError(null);
       form.reset();
     }
+    setOpen(nextOpen);
   };
 
   return (
@@ -250,6 +257,22 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
                 )}
               </form.Field>
             </FieldGroup>
+          </FieldSet>
+
+          {/* Images Section */}
+          <FieldSet>
+            <FieldLegend>Images</FieldLegend>
+            <form.Field name="images">
+              {(field) => (
+                <ImageGalleryUploader
+                  module="products"
+                  images={field.state.value ?? []}
+                  onChange={(images) => field.handleChange(images)}
+                  disabled={updateProductMutation.isPending}
+                  maxFiles={10}
+                />
+              )}
+            </form.Field>
           </FieldSet>
 
           {submitError ? (

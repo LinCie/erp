@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/shared/presentation/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/shared/presentation/components/ui/dialog";
 import {
   ProductForm,
+  type ProductFormRef,
   type ProductWithVariantsFormValues,
 } from "./product-form";
 import { useCreateProductWithVariants } from "../hooks/use-create-product-with-variants";
@@ -21,10 +22,14 @@ export function CreateProductModal() {
   const [open, setOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const createMutation = useCreateProductWithVariants();
+  const productFormRef = useRef<ProductFormRef | null>(null);
 
-  const handleOpenChange = (nextOpen: boolean) => {
+  const handleOpenChange = async (nextOpen: boolean) => {
+    if (!nextOpen) {
+      await productFormRef.current?.cleanupUnsavedImages();
+      setSubmitError(null);
+    }
     setOpen(nextOpen);
-    if (!nextOpen) setSubmitError(null);
   };
 
   const handleSubmit = async (value: ProductWithVariantsFormValues) => {
@@ -70,6 +75,7 @@ export function CreateProductModal() {
         ) : null}
 
         <ProductForm
+          ref={productFormRef}
           onSubmit={handleSubmit}
           isPending={createMutation.isPending}
           submitLabel={

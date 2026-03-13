@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import {
+  useState,
+  useImperativeHandle,
+  type ReactNode,
+} from "react";
 import { useForm } from "@tanstack/react-form";
 import { useStore } from "@tanstack/react-store";
 import { Plus, Trash2, Loader2Icon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
@@ -17,6 +21,7 @@ import { Input } from "@/shared/presentation/components/ui/input";
 import { Textarea } from "@/shared/presentation/components/ui/textarea";
 import { Switch } from "@/shared/presentation/components/ui/switch";
 import { Label } from "@/shared/presentation/components/ui/label";
+import { ImageGalleryUploader } from "@/shared/presentation/components/ui/image-gallery-uploader";
 import {
   type ProductFormValues,
   productSlugSchema,
@@ -24,19 +29,27 @@ import {
 import { generateSlug } from "../utils/product.utils";
 import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
 import { useCheckSlugQuery } from "../hooks/use-check-slug-query";
+import { useImageCleanup } from "@/shared/presentation/hooks/use-image-cleanup";
 import {
   VariantFormFields,
   type VariantFieldValues,
 } from "@/modules/variants/presentation/components/variant-form-fields";
+import type { ProductImage } from "@/modules/products/domain/product-image.entity";
+
+export type ProductFormRef = {
+  cleanupUnsavedImages: () => Promise<ProductImage[]>;
+};
 
 export type ProductWithVariantsFormValues = ProductFormValues & {
   variants: VariantFieldValues[];
+  images: ProductImage[];
 };
 
 type ProductFormProps = {
   onSubmit: (value: ProductWithVariantsFormValues) => Promise<void>;
   isPending?: boolean;
   submitLabel?: ReactNode;
+  ref?: React.RefObject<ProductFormRef | null>;
 };
 
 const DEFAULT_VARIANT: VariantFieldValues = {
@@ -53,6 +66,7 @@ export function ProductForm({
   onSubmit,
   isPending,
   submitLabel = "Create",
+  ref,
 }: ProductFormProps) {
   const [showVariants, setShowVariants] = useState(false);
 
@@ -61,12 +75,28 @@ export function ProductForm({
       name: "",
       slug: "",
       description: "",
+      images: [] as ProductImage[],
       variants: [] as VariantFieldValues[],
     } as ProductWithVariantsFormValues,
     onSubmit: async ({ value }) => {
       await onSubmit(value);
     },
   });
+
+  const { cleanupImages } = useImageCleanup();
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      cleanupUnsavedImages: async () => {
+        const currentImages =
+          (form.getFieldValue("images") as ProductImage[] | undefined) ?? [];
+        await cleanupImages(currentImages);
+        return currentImages;
+      },
+    }),
+    [form, cleanupImages],
+  );
 
   const rawSlug = useStore(form.store, (state) => state.values.slug);
   const debouncedSlug = useDebouncedValue(rawSlug, 500);
@@ -209,6 +239,22 @@ export function ProductForm({
             )}
           </form.Field>
         </FieldGroup>
+      </FieldSet>
+
+      {/* Images Section */}
+      <FieldSet>
+        <FieldLegend>Images</FieldLegend>
+        <form.Field name="images">
+          {(field) => (
+            <ImageGalleryUploader
+              module="products"
+              images={field.state.value}
+              onChange={(images) => field.handleChange(images)}
+              disabled={isPending}
+              maxFiles={10}
+            />
+          )}
+        </form.Field>
       </FieldSet>
 
       {/* Variants Section */}

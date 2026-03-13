@@ -18,10 +18,18 @@ export const productDescriptionSchema = z
   .string()
   .max(500, "Description must be less than 500 characters");
 
+export const productImageSchema = z.object({
+  key: z.string(),
+  alt: z.string(),
+  order: z.number(),
+});
+
 export const productFormSchema = z.object({
   name: productNameSchema,
   slug: productSlugSchema,
   description: productDescriptionSchema,
+  images: z.array(productImageSchema).max(10, "Maximum 10 images allowed").optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
+export type ProductImageInput = z.infer<typeof productImageSchema>;

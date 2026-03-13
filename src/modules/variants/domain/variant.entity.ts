@@ -1,3 +1,5 @@
+import type { ProductImage } from "@/modules/products/domain/product-image.entity";
+
 /**
  * Domain entity representing a sellable product variant.
  *
@@ -22,6 +24,8 @@ export interface VariantEntity {
   currency: string;
 
   isDefault: boolean;
+
+  images: ProductImage[];
 
   createdAt: Date;
   updatedAt: Date;
@@ -51,5 +55,6 @@ export function createDefaultVariant(
     basePrice: 0,
     currency: "USD",
     isDefault: true,
+    images: [],
   };
 }

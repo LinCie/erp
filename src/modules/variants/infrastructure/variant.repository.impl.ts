@@ -11,6 +11,7 @@ import type {
 } from "../application/types/variant.types";
 import type { VariantRepository } from "../application/variant.repository";
 import type { VariantEntity } from "../domain/variant.entity";
+import { parseProductImages } from "@/shared/application/utils/parse-images";
 
 /**
  * Kysely-backed implementation of the VariantRepository interface.
@@ -45,6 +46,7 @@ export class VariantRepositoryImpl implements VariantRepository {
         costPrice: input.costPrice ?? null,
         currency: input.currency ?? "USD",
         isDefault: input.isDefault ?? false,
+        images: input.images ? JSON.stringify(input.images) : null,
         createdBy: input.createdBy ?? null,
       })
       .returningAll()
@@ -80,6 +82,7 @@ export class VariantRepositoryImpl implements VariantRepository {
       costPrice: v.costPrice ?? null,
       currency: v.currency ?? "USD",
       isDefault: v.isDefault ?? false,
+      images: v.images ? JSON.stringify(v.images) : null,
       createdBy: v.createdBy ?? null,
     }));
 
@@ -140,6 +143,7 @@ export class VariantRepositoryImpl implements VariantRepository {
       costPrice: number | null;
       currency: string;
       isDefault: boolean;
+      images: string | null;
       updatedBy: string | null;
     }> = {};
 
@@ -152,6 +156,8 @@ export class VariantRepositoryImpl implements VariantRepository {
       updateData.costPrice = input.costPrice ?? null;
     if (input.currency !== undefined) updateData.currency = input.currency;
     if (input.isDefault !== undefined) updateData.isDefault = input.isDefault;
+    if (input.images !== undefined)
+      updateData.images = input.images.length > 0 ? JSON.stringify(input.images) : null;
     if (input.updatedBy !== undefined)
       updateData.updatedBy = input.updatedBy ?? null;
 
@@ -256,6 +262,7 @@ export class VariantRepositoryImpl implements VariantRepository {
       costPrice: variant.costPrice !== null ? Number(variant.costPrice) : null,
       currency: variant.currency,
       isDefault: variant.isDefault,
+      images: parseProductImages(variant.images),
       createdAt: variant.createdAt,
       updatedAt: variant.updatedAt,
       deletedAt: variant.deletedAt,
