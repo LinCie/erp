@@ -12,6 +12,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn("name", "varchar(255)", (col) => col.notNull())
     .addColumn("description", "text")
     .addColumn("slug", "varchar(255)", (col) => col.notNull())
+    .addColumn("images", "jsonb", (col) => col.defaultTo(null))
     .addColumn("created_at", "timestamptz", (col) =>
       col.notNull().defaultTo("now()"),
     )

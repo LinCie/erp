@@ -10,6 +10,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn("product_id", "uuid", (col) =>
       col.notNull().references("products.id").onDelete("cascade"),
     )
+    .addColumn('name', 'varchar(100)', (col) => col.notNull())
     .addColumn("sku", "varchar(50)", (col) => col.notNull())
     .addColumn("base_price", "decimal(19, 4)", (col) =>
       col.notNull().defaultTo(0),
@@ -22,6 +23,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
     .addColumn("is_default", "boolean", (col) =>
       col.notNull().defaultTo(false),
     )
+    .addColumn("images", "jsonb", (col) => col.defaultTo(null))
     .addColumn("created_at", "timestamptz", (col) =>
       col.notNull().defaultTo("now()"),
     )
