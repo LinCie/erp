@@ -23,6 +23,8 @@ export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
 export type Numeric = ColumnType<string, number | string, number | string>;
 
+export type ProductStatus = "active" | "archived" | "draft";
+
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
 export interface Account {
@@ -78,6 +80,7 @@ export interface Products {
   name: string;
   organizationId: string;
   slug: string;
+  status: Generated<ProductStatus>;
   updatedAt: Generated<Timestamp>;
 }
 
@@ -117,6 +120,7 @@ export interface Variants {
   productId: string;
   salePrice: Numeric | null;
   sku: string;
+  status: Generated<ProductStatus>;
   updatedAt: Generated<Timestamp>;
   updatedBy: string | null;
 }
