@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const PRODUCT_STATUS_OPTIONS = ["draft", "active", "archived"] as const;
+
+export const productStatusSchema = z.enum(PRODUCT_STATUS_OPTIONS);
+
 export const productNameSchema = z
   .string()
   .min(2, "Product name must be at least 2 characters")
@@ -28,8 +32,10 @@ export const productFormSchema = z.object({
   name: productNameSchema,
   slug: productSlugSchema,
   description: productDescriptionSchema,
+  status: productStatusSchema,
   images: z.array(productImageSchema).max(10, "Maximum 10 images allowed").optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
 export type ProductImageInput = z.infer<typeof productImageSchema>;
+export type ProductStatus = z.infer<typeof productStatusSchema>;

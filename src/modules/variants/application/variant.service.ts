@@ -135,6 +135,7 @@ export class VariantService {
       productId: defaults.productId,
       name: defaults.name,
       sku: defaults.sku,
+      status: defaults.status,
       basePrice: defaults.basePrice,
       currency: defaults.currency,
       isDefault: defaults.isDefault,

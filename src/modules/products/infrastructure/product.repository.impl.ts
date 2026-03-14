@@ -26,7 +26,7 @@ import type {
   PermanentDeleteProductOutput,
 } from "../application/types/product.types";
 import type { ProductRepository } from "../application/product.repository";
-import type { ProductEntity } from "../domain/product.entity";
+import type { ProductEntity, ProductStatus } from "../domain/product.entity";
 import { parseProductImages } from "@/shared/application/utils/parse-images";
 
 export class ProductRepositoryImpl implements ProductRepository {
@@ -38,6 +38,7 @@ export class ProductRepositoryImpl implements ProductRepository {
         name: input.name,
         description: input.description,
         slug: input.slug,
+        status: input.status,
         images: input.images ? JSON.stringify(input.images) : null,
       })
       .returningAll()
@@ -96,6 +97,10 @@ export class ProductRepositoryImpl implements ProductRepository {
       baseQuery = baseQuery.where("name", "ilike", `%${escaped}%`);
     }
 
+    if (input.status) {
+      baseQuery = baseQuery.where("status", "=", input.status);
+    }
+
     const [products, countResult] = await Promise.all([
       baseQuery
         .selectAll()
@@ -125,6 +130,7 @@ export class ProductRepositoryImpl implements ProductRepository {
       name: string;
       description: string | null;
       slug: string;
+      status: ProductStatus;
       images: string | null;
     }> = {};
 
@@ -138,6 +144,10 @@ export class ProductRepositoryImpl implements ProductRepository {
 
     if (input.slug !== undefined) {
       updateData.slug = input.slug;
+    }
+
+    if (input.status !== undefined) {
+      updateData.status = input.status;
     }
 
     if (input.images !== undefined) {
@@ -171,6 +181,7 @@ export class ProductRepositoryImpl implements ProductRepository {
       name: product.name,
       description: product.description,
       slug: product.slug,
+      status: product.status,
       images: parseProductImages(product.images),
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,

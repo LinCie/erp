@@ -3,11 +3,13 @@ import { z } from "zod";
 import { VariantService } from "../application/variant.service";
 import { VariantRepositoryImpl } from "../infrastructure/variant.repository.impl";
 import { authPlugin } from "@/server/middlewares/auth-middleware";
+import type { VariantStatus } from "../domain/variant.entity";
 import {
   createVariantSchema,
   updateVariantSchema,
   bulkCreateSchema,
   checkSkuQuerySchema,
+  VARIANT_STATUS_OPTIONS,
 } from "./schemas/variant-schema";
 
 const variantService = new VariantService(new VariantRepositoryImpl());
@@ -16,7 +18,6 @@ export const variantRoutes = new Elysia({
   prefix: "/products/:id/variants",
 })
   .use(authPlugin)
-  // POST /products/:productId/variants — create a single variant
   .post(
     "/",
     async ({ params, body, status }) => {
@@ -47,7 +48,6 @@ export const variantRoutes = new Elysia({
       },
     },
   )
-  // POST /products/:productId/variants/bulk — create multiple variants at once
   .post(
     "/bulk",
     async ({ params, body, status }) => {
@@ -79,12 +79,12 @@ export const variantRoutes = new Elysia({
       },
     },
   )
-  // GET /products/:productId/variants — list all variants
   .get(
     "/",
-    async ({ params }) => {
+    async ({ params, query }) => {
       const result = await variantService.findAll({
         productId: params.id,
+        status: query?.status as VariantStatus | undefined,
       });
       return result;
     },
@@ -92,6 +92,9 @@ export const variantRoutes = new Elysia({
       requireAuth: true,
       requireOrg: true,
       params: z.object({ id: z.string().uuid() }),
+      query: z.object({
+        status: z.enum(VARIANT_STATUS_OPTIONS).optional(),
+      }).optional(),
       detail: {
         tags: ["Variants"],
         summary: "List all variants for a product",

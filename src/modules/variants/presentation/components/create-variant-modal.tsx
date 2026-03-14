@@ -42,6 +42,7 @@ export function CreateVariantModal({ productId }: CreateVariantModalProps) {
       await createMutation.mutateAsync({
         name: value.name,
         sku: value.sku,
+        status: value.status,
         basePrice: value.basePrice,
         salePrice: value.salePrice,
         costPrice: value.costPrice,

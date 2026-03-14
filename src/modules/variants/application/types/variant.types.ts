@@ -1,10 +1,11 @@
-import type { VariantEntity } from "../../domain/variant.entity";
+import type { VariantEntity, VariantStatus } from "../../domain/variant.entity";
 import type { ProductImage } from "@/modules/products/domain/product-image.entity";
 
 export interface CreateVariantInput {
   productId: string;
   name: string;
   sku: string;
+  status: VariantStatus;
   basePrice: number;
   salePrice?: number;
   costPrice?: number;
@@ -17,6 +18,7 @@ export interface CreateVariantInput {
 export interface UpdateVariantInput {
   name?: string;
   sku?: string;
+  status?: VariantStatus;
   basePrice?: number;
   salePrice?: number;
   costPrice?: number;
@@ -28,6 +30,7 @@ export interface UpdateVariantInput {
 
 export interface VariantFilters {
   productId: string;
+  status?: VariantStatus;
   includeDeleted?: boolean;
 }
 

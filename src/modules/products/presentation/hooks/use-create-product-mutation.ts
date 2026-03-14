@@ -9,6 +9,7 @@ type CreateProductInput = {
   name: string;
   slug: string;
   description: string;
+  status: "draft" | "active" | "archived";
 };
 
 export function useCreateProductMutation() {
@@ -20,6 +21,7 @@ export function useCreateProductMutation() {
         name: input.name.trim(),
         slug: input.slug.trim(),
         description: input.description.trim() || null,
+        status: input.status,
       });
 
       if (response.error) {

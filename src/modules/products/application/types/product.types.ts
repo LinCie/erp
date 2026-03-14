@@ -1,11 +1,15 @@
-import type { ProductEntity } from "../../domain/product.entity";
+import type { ProductEntity, ProductStatus } from "../../domain/product.entity";
 import type { ProductImage } from "../../domain/product-image.entity";
 import type { CreateVariantInput } from "@/modules/variants/application/types/variant.types";
 import type { PaginationMetadata } from "@/shared/application/types/pagination.type";
 
+export const PRODUCT_STATUS_VALUES = ["draft", "active", "archived"] as const;
+export type ProductStatusValue = (typeof PRODUCT_STATUS_VALUES)[number];
+
 export const PRODUCT_SORT_FIELDS = [
   "name",
   "slug",
+  "status",
   "createdAt",
   "updatedAt",
   "deletedAt",
@@ -21,6 +25,7 @@ export type CreateProductInput = {
   name: string;
   description: string | null;
   slug: string;
+  status: ProductStatus;
   images?: ProductImage[];
   /** Optional variants to create alongside the product. If empty/absent, a default variant is auto-generated. */
   variants?: Array<Omit<CreateVariantInput, "productId">>;
@@ -52,6 +57,7 @@ export type FindAllProductsInput = {
   page: number;
   limit: number;
   search?: string;
+  status?: ProductStatus;
   sortBy: ProductSortField;
   sortOrder: ProductSortOrder;
 };
@@ -67,6 +73,7 @@ export type UpdateProductInput = {
   name?: string;
   description?: string | null;
   slug?: string;
+  status?: ProductStatus;
   images?: ProductImage[];
 };
 

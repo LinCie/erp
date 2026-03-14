@@ -39,6 +39,7 @@ type VariantFormProps = {
 const DEFAULT_VALUES: VariantFormValues = {
   name: "",
   sku: "",
+  status: "draft",
   basePrice: 0,
   salePrice: undefined,
   costPrice: undefined,
@@ -89,6 +90,7 @@ export function VariantForm({
   const getVariantFieldValue = (): VariantFieldValues => ({
     name: form.getFieldValue("name") as string,
     sku: form.getFieldValue("sku") as string,
+    status: form.getFieldValue("status") as "draft" | "active" | "archived",
     basePrice: form.getFieldValue("basePrice") as number,
     salePrice: form.getFieldValue("salePrice") as number | undefined,
     costPrice: form.getFieldValue("costPrice") as number | undefined,
@@ -99,6 +101,7 @@ export function VariantForm({
   const handleVariantFieldChange = (newValue: VariantFieldValues) => {
     form.setFieldValue("name", newValue.name);
     form.setFieldValue("sku", newValue.sku);
+    form.setFieldValue("status", newValue.status);
     form.setFieldValue("basePrice", newValue.basePrice);
     form.setFieldValue("salePrice", newValue.salePrice);
     form.setFieldValue("costPrice", newValue.costPrice);

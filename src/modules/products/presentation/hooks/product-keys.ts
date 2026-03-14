@@ -4,6 +4,7 @@ export const productKeys = {
   list: (filters: {
     search: string;
     page: number;
+    status?: string;
     sortBy: string;
     sortOrder: string;
   }) => [...productKeys.lists(), filters] as const,

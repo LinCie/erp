@@ -9,6 +9,7 @@ import type { ProductImage } from "@/modules/products/domain/product-image.entit
 type VariantInput = {
   name: string;
   sku: string;
+  status: "draft" | "active" | "archived";
   basePrice: number;
   salePrice?: number;
   costPrice?: number;
@@ -20,6 +21,7 @@ type CreateProductWithVariantsInput = {
   name: string;
   slug: string;
   description: string;
+  status: "draft" | "active" | "archived";
   images?: ProductImage[];
   variants?: VariantInput[];
 };
@@ -29,12 +31,11 @@ export function useCreateProductWithVariants() {
 
   return useMutation({
     mutationFn: async (input: CreateProductWithVariantsInput) => {
-      // Backend now handles variant creation (or auto-default generation)
-      // in a single POST /products call
       const response = await api.products.post({
         name: input.name.trim(),
         slug: input.slug.trim(),
         description: input.description.trim() || null,
+        status: input.status,
         images: input.images,
         variants:
           input.variants && input.variants.length > 0

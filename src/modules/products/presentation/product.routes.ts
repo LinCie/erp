@@ -8,6 +8,7 @@ import { authPlugin } from "@/server/middlewares/auth-middleware";
 import {
   PRODUCT_SORT_FIELDS,
   PRODUCT_SORT_ORDERS,
+  PRODUCT_STATUS_VALUES,
 } from "../application/types/product.types";
 import { productImageSchema } from "./schemas/create-product-schema";
 
@@ -22,6 +23,7 @@ const ProductSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   slug: z.string(),
+  status: z.enum(PRODUCT_STATUS_VALUES),
   images: z.array(productImageSchema),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -49,11 +51,12 @@ export const productRoutes = new Elysia({ prefix: "/products" })
           name: body.name,
           description: body.description ?? null,
           slug: body.slug,
+          status: body.status,
           organizationId: organization.id,
           images: body.images,
           variants:
             body.variants && body.variants.length > 0
-              ? body.variants
+              ? body.variants.map((v) => ({ ...v, status: v.status }))
               : undefined,
         });
 
@@ -75,12 +78,14 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         name: z.string().min(1).max(255),
         description: z.string().nullable(),
         slug: z.string().min(1).max(255),
+        status: z.enum(PRODUCT_STATUS_VALUES),
         images: z.array(productImageSchema).optional(),
         variants: z
           .array(
             z.object({
               name: z.string().min(1).max(255),
               sku: z.string().min(3).max(50),
+              status: z.enum(PRODUCT_STATUS_VALUES),
               basePrice: z.number().min(0),
               salePrice: z.number().min(0).optional(),
               costPrice: z.number().min(0).optional(),
@@ -108,12 +113,14 @@ export const productRoutes = new Elysia({ prefix: "/products" })
       const search = query.search ?? "";
       const sortBy = query.sortBy ?? "createdAt";
       const sortOrder = query.sortOrder ?? "desc";
+      const status = query.status;
 
       const result = await productService.findAll({
         organizationId: organization.id,
         page,
         limit,
         search,
+        status,
         sortBy,
         sortOrder,
       });
@@ -126,6 +133,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         page: z.coerce.number().min(1).optional(),
         limit: z.coerce.number().min(1).max(100).optional(),
         search: z.string().optional(),
+        status: z.enum(PRODUCT_STATUS_VALUES).optional(),
         sortBy: z.enum(PRODUCT_SORT_FIELDS).optional(),
         sortOrder: z.enum(PRODUCT_SORT_ORDERS).optional(),
       }),
@@ -280,6 +288,7 @@ export const productRoutes = new Elysia({ prefix: "/products" })
         name: z.string().min(1).max(255).optional(),
         description: z.string().nullable().optional(),
         slug: z.string().min(1).max(255).optional(),
+        status: z.enum(PRODUCT_STATUS_VALUES).optional(),
         images: z.array(productImageSchema).optional(),
       }),
       response: {

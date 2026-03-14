@@ -39,6 +39,7 @@ export function CreateProductModal() {
         name: value.name,
         slug: value.slug,
         description: value.description,
+        status: value.status,
         images: value.images,
         variants: value.variants.length > 0 ? value.variants : undefined,
       });

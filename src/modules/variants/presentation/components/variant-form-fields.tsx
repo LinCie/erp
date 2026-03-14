@@ -12,13 +12,23 @@ import {
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Label } from "@/shared/presentation/components/ui/label";
 import { Switch } from "@/shared/presentation/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/presentation/components/ui/select";
 import { Loader2Icon, CheckCircle2Icon, XCircleIcon } from "lucide-react";
 import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
 import { useCheckSkuQuery } from "../hooks/use-check-sku-query";
+import { VARIANT_STATUS_OPTIONS } from "../schemas/variant-schema";
+import type { VariantStatus } from "../../domain/variant.entity";
 
 export type VariantFieldValues = {
   name: string;
   sku: string;
+  status: VariantStatus;
   basePrice: number;
   salePrice?: number;
   costPrice?: number;
@@ -157,6 +167,26 @@ export function VariantFormFields({
                   <p className="text-xs text-success">SKU is available.</p>
                 )}
             </div>
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor={`variant-${index}-status`}>Status</FieldLabel>
+            <Select
+              value={value.status}
+              onValueChange={(val) => handleChange("status", val as VariantStatus)}
+              disabled={disabled}
+            >
+              <SelectTrigger id={`variant-${index}-status`} className="w-full">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                {VARIANT_STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
         </FieldGroup>
       </FieldSet>

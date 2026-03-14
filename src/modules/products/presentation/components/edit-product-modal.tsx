@@ -50,6 +50,7 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
         name: value.name,
         slug: value.slug,
         description: value.description,
+        status: value.status,
         images: value.images,
       });
       setOpen(false);
@@ -111,6 +112,7 @@ export function EditProductModal({ product, children }: EditProductModalProps) {
             name: product.name,
             slug: product.slug,
             description: product.description ?? "",
+            status: product.status,
             images: product.images as ProductImage[],
             variants: [],
           }}

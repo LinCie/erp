@@ -1,5 +1,7 @@
 import type { ProductImage } from "@/modules/products/domain/product-image.entity";
 
+export type VariantStatus = "draft" | "active" | "archived";
+
 /**
  * Domain entity representing a sellable product variant.
  *
@@ -17,6 +19,7 @@ export interface VariantEntity {
 
   name: string;
   sku: string;
+  status: VariantStatus;
 
   basePrice: number;
   salePrice?: number | null;
@@ -52,6 +55,7 @@ export function createDefaultVariant(
     productId,
     name: "Default",
     sku: `AUTO-${productId.slice(0, 8)}-${Date.now()}`,
+    status: "draft",
     basePrice: 0,
     currency: "USD",
     isDefault: true,

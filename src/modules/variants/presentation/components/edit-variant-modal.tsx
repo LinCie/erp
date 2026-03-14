@@ -55,6 +55,7 @@ export function EditVariantModal({
         input: {
           name: value.name,
           sku: value.sku,
+          status: value.status,
           basePrice: value.basePrice,
           salePrice: value.salePrice,
           costPrice: value.costPrice,
@@ -121,6 +122,7 @@ export function EditVariantModal({
           initialValues={{
             name: variant.name,
             sku: variant.sku,
+            status: variant.status,
             basePrice: variant.basePrice,
             salePrice: variant.salePrice ?? undefined,
             costPrice: variant.costPrice ?? undefined,

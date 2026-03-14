@@ -11,6 +11,7 @@ type UpdateProductInput = {
   slug: string;
   name: string;
   description: string;
+  status: "draft" | "active" | "archived";
   images?: ProductImage[];
 };
 
@@ -23,6 +24,7 @@ export function useUpdateProductMutation() {
         name: input.name.trim(),
         slug: input.slug.trim(),
         description: input.description.trim() || null,
+        status: input.status,
         images: input.images,
       });
 

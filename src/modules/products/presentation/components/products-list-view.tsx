@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/shared/presentation/components/ui/button";
+import { Badge } from "@/shared/presentation/components/ui/badge";
 import { cn } from "@/shared/presentation/libraries/utils";
 import {
   Pagination,
@@ -36,6 +37,13 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/presentation/components/ui/dropdown-menu";
 import { Input } from "@/shared/presentation/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/presentation/components/ui/select";
 import { Skeleton } from "@/shared/presentation/components/ui/skeleton";
 import {
   Table,
@@ -48,10 +56,12 @@ import {
 import type {
   ProductSortField,
   ProductSortOrder,
+  ProductStatusValue,
 } from "../../application/types/product.types";
 import {
   PRODUCT_SORT_FIELDS,
   PRODUCT_SORT_ORDERS,
+  PRODUCT_STATUS_VALUES,
 } from "../../application/types/product.types";
 import { ProductEntity as Product } from "../../domain/product.entity";
 import { useProductsQuery } from "../hooks/use-products-query";
@@ -61,6 +71,7 @@ import { DeleteProductAlert } from "./delete-product-alert";
 
 type ProductsListViewProps = {
   initialSearch?: string;
+  initialStatus?: ProductStatusValue;
   initialSortBy?: ProductSortField;
   initialSortOrder?: ProductSortOrder;
 };
@@ -69,6 +80,38 @@ const DEFAULT_SORT_BY: ProductSortField = "createdAt";
 const DEFAULT_SORT_ORDER: ProductSortOrder = "desc";
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
+const STATUS_FILTER_VALUE_ALL = "all";
+
+function isStatusValue(value: string | null): value is ProductStatusValue {
+  return (
+    value !== null &&
+    PRODUCT_STATUS_VALUES.includes(value as ProductStatusValue)
+  );
+}
+
+function getStatusLabel(status: ProductStatusValue): string {
+  switch (status) {
+    case "active":
+      return "Active";
+    case "archived":
+      return "Archived";
+    case "draft":
+      return "Draft";
+  }
+}
+
+function getStatusBadgeVariant(
+  status: ProductStatusValue,
+): "default" | "secondary" | "outline" {
+  switch (status) {
+    case "active":
+      return "default";
+    case "archived":
+      return "secondary";
+    case "draft":
+      return "outline";
+  }
+}
 
 function isSortField(value: string | null): value is ProductSortField {
   return (
@@ -100,6 +143,8 @@ function useColumns(
   onSortChange: (field: ProductSortField) => void,
   filters: {
     search: string;
+    page: number;
+    status?: ProductStatusValue;
     sortBy: ProductSortField;
     sortOrder: ProductSortOrder;
   },
@@ -143,6 +188,15 @@ function useColumns(
           ),
       },
       {
+        accessorKey: "status",
+        header: () => renderSortableHeader("status", "Status"),
+        cell: ({ row }) => (
+          <Badge variant={getStatusBadgeVariant(row.original.status)}>
+            {getStatusLabel(row.original.status)}
+          </Badge>
+        ),
+      },
+      {
         accessorKey: "createdAt",
         header: () => renderSortableHeader("createdAt", "Created"),
         cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
@@ -183,6 +237,8 @@ function useColumns(
                   product={product}
                   filters={{
                     search: filters.search,
+                    page: filters.page,
+                    status: filters.status,
                     sortBy: filters.sortBy,
                     sortOrder: filters.sortOrder,
                   }}
@@ -198,6 +254,7 @@ function useColumns(
 
 export function ProductsListView({
   initialSearch = "",
+  initialStatus,
   initialSortBy = DEFAULT_SORT_BY,
   initialSortOrder = DEFAULT_SORT_ORDER,
 }: ProductsListViewProps) {
@@ -213,6 +270,9 @@ export function ProductsListView({
 
   const rawSortOrder = searchParams.get("sortOrder");
   const sortOrder = isSortOrder(rawSortOrder) ? rawSortOrder : initialSortOrder;
+
+  const rawStatus = searchParams.get("status");
+  const status = isStatusValue(rawStatus) ? rawStatus : initialStatus;
 
   const rawPage = searchParams.get("page");
   const page = rawPage ? Math.max(1, parseInt(rawPage, 10) || 1) : DEFAULT_PAGE;
@@ -269,6 +329,13 @@ export function ProductsListView({
     updateUrl(params);
   };
 
+  const handleStatusChange = (value: string) => {
+    updateUrl({
+      status: value === STATUS_FILTER_VALUE_ALL ? null : value,
+      page: null,
+    });
+  };
+
   const handlePageChange = (newPage: number) => {
     updateUrl({
       page: newPage <= 1 ? null : String(newPage),
@@ -284,6 +351,7 @@ export function ProductsListView({
     search,
     page,
     limit: DEFAULT_LIMIT,
+    status,
     sortBy,
     sortOrder,
   });
@@ -295,7 +363,7 @@ export function ProductsListView({
     sortBy,
     sortOrder,
     handleSortChange,
-    { search, sortBy, sortOrder },
+    { search, page, status, sortBy, sortOrder },
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -315,15 +383,38 @@ export function ProductsListView({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-semibold">Products</h1>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search products..."
-              value={searchInput}
-              onChange={(event) => handleSearchChange(event.target.value)}
-              className="w-full pl-10 sm:w-64 md:w-80"
-              aria-label="Search products"
-            />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search products..."
+                value={searchInput}
+                onChange={(event) => handleSearchChange(event.target.value)}
+                className="w-full pl-10 sm:w-64 md:w-80"
+                aria-label="Search products"
+              />
+            </div>
+            <Select
+              value={status ?? STATUS_FILTER_VALUE_ALL}
+              onValueChange={handleStatusChange}
+            >
+              <SelectTrigger
+                className="w-full sm:w-40"
+                aria-label="Filter by product status"
+              >
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={STATUS_FILTER_VALUE_ALL}>
+                  All statuses
+                </SelectItem>
+                {PRODUCT_STATUS_VALUES.map((statusValue) => (
+                  <SelectItem key={statusValue} value={statusValue}>
+                    {getStatusLabel(statusValue)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-2">
             <CreateProductModal />
@@ -368,6 +459,9 @@ export function ProductsListView({
                     <Skeleton className="h-4 w-full max-w-62.5" />
                   </TableCell>
                   <TableCell>
+                    <Skeleton className="h-5 w-18 rounded-4xl" />
+                  </TableCell>
+                  <TableCell>
                     <Skeleton className="h-4 w-25" />
                   </TableCell>
                   <TableCell>
@@ -407,7 +501,7 @@ export function ProductsListView({
                   ))}
                 </TableRow>
               ))
-            ) : search ? (
+            ) : search || status ? (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
@@ -415,13 +509,27 @@ export function ProductsListView({
                   role="status"
                 >
                   <div className="flex flex-col items-center gap-2">
-                    <p>No products match &ldquo;{search}&rdquo;</p>
+                    <p>
+                      No products match the current filters
+                      {search ? (
+                        <>
+                          {" "}for &ldquo;{search}&rdquo;
+                        </>
+                      ) : null}
+                    </p>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleSearchChange("")}
+                      onClick={() => {
+                        setSearchInput("");
+                        updateUrl({
+                          search: null,
+                          status: null,
+                          page: null,
+                        });
+                      }}
                     >
-                      Clear search
+                      Clear filters
                     </Button>
                   </div>
                 </TableCell>

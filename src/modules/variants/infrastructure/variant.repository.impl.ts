@@ -10,7 +10,7 @@ import type {
   SkuAvailabilityResult,
 } from "../application/types/variant.types";
 import type { VariantRepository } from "../application/variant.repository";
-import type { VariantEntity } from "../domain/variant.entity";
+import type { VariantEntity, VariantStatus } from "../domain/variant.entity";
 import { parseProductImages } from "@/shared/application/utils/parse-images";
 
 /**
@@ -30,7 +30,6 @@ export class VariantRepositoryImpl implements VariantRepository {
    * invariant.
    */
   async create(input: CreateVariantInput): Promise<VariantEntity> {
-    // If this variant is the new default, clear the existing default first
     if (input.isDefault) {
       await this.unsetCurrentDefault(input.productId);
     }
@@ -41,6 +40,7 @@ export class VariantRepositoryImpl implements VariantRepository {
         productId: input.productId,
         name: input.name,
         sku: input.sku,
+        status: input.status,
         basePrice: input.basePrice,
         salePrice: input.salePrice ?? null,
         costPrice: input.costPrice ?? null,
@@ -68,7 +68,6 @@ export class VariantRepositoryImpl implements VariantRepository {
       throw new Error("Only one variant can be marked as default");
     }
 
-    // If a default is being set, clear any existing default first
     if (defaultCount === 1) {
       await this.unsetCurrentDefault(input.productId);
     }
@@ -77,6 +76,7 @@ export class VariantRepositoryImpl implements VariantRepository {
       productId: input.productId,
       name: v.name,
       sku: v.sku,
+      status: v.status,
       basePrice: v.basePrice,
       salePrice: v.salePrice ?? null,
       costPrice: v.costPrice ?? null,
@@ -118,6 +118,10 @@ export class VariantRepositoryImpl implements VariantRepository {
       query = query.where("deletedAt", "is", null);
     }
 
+    if (filters.status) {
+      query = query.where("status", "=", filters.status);
+    }
+
     const variants = await query.orderBy("createdAt", "asc").execute();
     const total = variants.length;
 
@@ -138,6 +142,7 @@ export class VariantRepositoryImpl implements VariantRepository {
     const updateData: Partial<{
       name: string;
       sku: string;
+      status: VariantStatus;
       basePrice: number;
       salePrice: number | null;
       costPrice: number | null;
@@ -149,6 +154,7 @@ export class VariantRepositoryImpl implements VariantRepository {
 
     if (input.name !== undefined) updateData.name = input.name;
     if (input.sku !== undefined) updateData.sku = input.sku;
+    if (input.status !== undefined) updateData.status = input.status;
     if (input.basePrice !== undefined) updateData.basePrice = input.basePrice;
     if (input.salePrice !== undefined)
       updateData.salePrice = input.salePrice ?? null;
@@ -161,7 +167,6 @@ export class VariantRepositoryImpl implements VariantRepository {
     if (input.updatedBy !== undefined)
       updateData.updatedBy = input.updatedBy ?? null;
 
-    // If promoting this variant to default, clear the existing default first
     if (input.isDefault === true) {
       const current = await db
         .selectFrom("variants")
@@ -257,6 +262,7 @@ export class VariantRepositoryImpl implements VariantRepository {
       productId: variant.productId,
       name: variant.name,
       sku: variant.sku,
+      status: variant.status,
       basePrice: Number(variant.basePrice),
       salePrice: variant.salePrice !== null ? Number(variant.salePrice) : null,
       costPrice: variant.costPrice !== null ? Number(variant.costPrice) : null,

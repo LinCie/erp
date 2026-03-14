@@ -52,6 +52,7 @@ export function useCreateVariantMutation(productId: string) {
           productId,
           name: input.name,
           sku: input.sku,
+          status: input.status,
           basePrice: input.basePrice,
           salePrice: input.salePrice ?? null,
           costPrice: input.costPrice ?? null,

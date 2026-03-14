@@ -16,17 +16,14 @@ import {
 } from "@/shared/presentation/components/ui/alert-dialog";
 import { DropdownMenuItem } from "@/shared/presentation/components/ui/dropdown-menu";
 import { useDeleteProductMutation } from "../hooks/use-delete-product-mutation";
+import type { ProductListFilters } from "../hooks/use-delete-product-mutation";
 import type { ProductEntity } from "../../domain/product.entity";
 
 type DeleteProductAlertProps = {
   product: ProductEntity;
   children?: React.ReactNode;
   onDeleted?: () => void;
-  filters?: {
-    search: string;
-    sortBy: string;
-    sortOrder: string;
-  };
+  filters?: ProductListFilters;
 };
 
 export function DeleteProductAlert({

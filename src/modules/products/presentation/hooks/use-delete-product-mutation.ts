@@ -10,9 +10,10 @@ type DeleteProductInput = {
   slug: string;
 };
 
-type ProductListFilters = {
+export type ProductListFilters = {
   search: string;
   page: number;
+  status?: string;
   sortBy: string;
   sortOrder: string;
 };

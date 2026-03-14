@@ -21,12 +21,21 @@ import {
 } from "@/shared/presentation/components/ui/field";
 import { Input } from "@/shared/presentation/components/ui/input";
 import { Textarea } from "@/shared/presentation/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/presentation/components/ui/select";
 import { Switch } from "@/shared/presentation/components/ui/switch";
 import { Label } from "@/shared/presentation/components/ui/label";
 import { ImageGalleryUploader } from "@/shared/presentation/components/ui/image-gallery-uploader";
 import {
   type ProductFormValues,
+  type ProductStatus,
   productSlugSchema,
+  PRODUCT_STATUS_OPTIONS,
 } from "../schemas/create-product-schema";
 import { generateSlug } from "../utils/product.utils";
 import { useDebouncedValue } from "@/shared/presentation/hooks/use-debounced-value";
@@ -61,6 +70,7 @@ type ProductFormProps = {
 const DEFAULT_VARIANT: VariantFieldValues = {
   name: "",
   sku: "",
+  status: "draft",
   basePrice: 0,
   salePrice: undefined,
   costPrice: undefined,
@@ -86,6 +96,7 @@ export function ProductForm({
       name: "",
       slug: "",
       description: "",
+      status: "draft" as "draft" | "active" | "archived",
       images: [] as ProductImage[],
       variants: [] as VariantFieldValues[],
     },
@@ -261,6 +272,32 @@ export function ProductForm({
                   rows={3}
                 />
                 <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )}
+          </form.Field>
+
+          <form.Field name="status">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="product-status">Status</FieldLabel>
+                <Select
+                  value={field.state.value}
+                  onValueChange={(value) =>
+                    field.handleChange(value as ProductStatus)
+                  }
+                  disabled={isPending}
+                >
+                  <SelectTrigger id="product-status" className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRODUCT_STATUS_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
             )}
           </form.Field>

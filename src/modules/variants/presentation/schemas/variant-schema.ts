@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const VARIANT_STATUS_OPTIONS = ["draft", "active", "archived"] as const;
+
+export const variantStatusSchema = z.enum(VARIANT_STATUS_OPTIONS);
+
 export const productImageSchema = z.object({
   key: z.string(),
   alt: z.string(),
@@ -39,6 +43,7 @@ export const variantSchema = z.object({
     .min(3)
     .max(50)
     .regex(/^[a-zA-Z0-9-_]+$/),
+  status: variantStatusSchema,
   basePrice: z.number().min(0),
   salePrice: z.number().min(0).nullable().optional(),
   costPrice: z.number().min(0).nullable().optional(),
@@ -54,6 +59,7 @@ export const variantSchema = z.object({
 export const createVariantSchema = z.object({
   name: nameSchema,
   sku: skuSchema,
+  status: variantStatusSchema,
   basePrice: z.number().min(0, "Base price must be non-negative"),
   salePrice: z.number().min(0, "Sale price must be non-negative").optional(),
   costPrice: z.number().min(0, "Cost price must be non-negative").optional(),
@@ -78,3 +84,4 @@ export type CreateVariantInput = z.infer<typeof createVariantSchema>;
 export type UpdateVariantInput = z.infer<typeof updateVariantSchema>;
 export type BulkCreateInput = z.infer<typeof bulkCreateSchema>;
 export type CheckSkuQuery = z.infer<typeof checkSkuQuerySchema>;
+export type VariantStatus = z.infer<typeof variantStatusSchema>;
