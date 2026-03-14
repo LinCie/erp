@@ -119,3 +119,5 @@ The interface should feel welcoming and unintimidating while conveying competenc
 ### Spacing & Radius
 - **Radius**: Subtle rounding (0.1rem base) — soft but not bubbly
 - **Spacing**: Generous whitespace, consistent 4px grid system
+
+Always use Context7 MCP when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
