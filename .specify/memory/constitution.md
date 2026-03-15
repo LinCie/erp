@@ -1,24 +1,21 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 1.1.0 → 1.2.0
+Version Change: 1.2.0 → 1.3.0
 Modified Principles:
-  - I. Component-Based Architecture (expanded to include presentation patterns)
-  - II. API-First Design with Type Contracts (expanded validation guidance)
-  - V. Database Migration Discipline (added soft delete pattern)
+  - IX. Query Pattern with Key Factories (expanded to include optimistic updates)
 Added Sections:
-  - VI. Layered Architecture with Dependency Inversion
-  - VII. Repository Pattern with Explicit Contracts
-  - VIII. Soft Delete Pattern
-  - IX. Query Pattern with Key Factories
-  - X. Form Pattern with TanStack React Form
-  - XI. Validation with Zod
+  - XIII. Optimistic Updates Pattern
+  - XIV. Multi-Tenancy by Design
+  - XV. Cross-Module Service Orchestration
 Removed Sections:
-  - None (constitution expanded)
+  - None
 Templates Requiring Updates:
-  - ✅ None (all templates align with new principles)
-  - ⚠️ Consider creating: module-template.md for consistent module structure
-Follow-up TODOs: None
+  - ⚠️ .specify/templates/module-template.md: Add optimistic updates, multi-tenancy, and orchestration examples
+  - ⚠️ .specify/templates/spec-template.md: Add trash/restore requirements section
+Follow-up TODOs:
+  - Create comprehensive module-template.md with all patterns
+  - Document trash/restore UI patterns in component templates
 -->
 
 # ERP Constitution
@@ -122,6 +119,34 @@ Bun MUST be used as the exclusive package manager and runtime for all developmen
 
 **Rationale**: Bun provides faster package installation (10-100x faster than npm/yarn), better monorepo support, and native TypeScript execution. Using a single toolchain eliminates configuration conflicts and ensures consistent behavior across all environments (local, CI, production).
 
+### XIII. Optimistic Updates Pattern
+
+Mutations that affect list views MUST implement optimistic updates to provide immediate UI feedback.
+- Use `onMutate` to update cache immediately with the expected result
+- Store previous state in context for potential rollback
+- Use `onError` to rollback to previous state on failure
+- Use `onSettled` to invalidate queries and trigger background refetch
+
+**Rationale**: Optimistic updates create a snappier, more responsive user experience by eliminating perceived latency. Users see immediate results while the actual operation completes in the background.
+
+### XIV. Multi-Tenancy by Design
+
+All entities MUST include `organizationId` for multi-tenant data isolation.
+- Repository queries MUST filter by `organizationId` unless explicitly documented otherwise
+- API routes MUST validate organization access via auth plugin
+- Unique constraints MUST include `organizationId` (e.g., `organization_id + slug`)
+
+**Rationale**: Organization scoping ensures data isolation between tenants from the ground up. Building multi-tenancy into the core data model prevents accidental data leakage and simplifies tenant management.
+
+### XV. Cross-Module Service Orchestration
+
+Services MAY depend on other module's services for cross-cutting concerns.
+- Dependencies MUST be injected via constructor (never instantiated directly)
+- Service methods MUST remain focused on a single responsibility
+- Complex orchestration (e.g., product + variants creation) SHOULD be handled in the primary service
+
+**Rationale**: Clean separation of concerns allows modules to remain focused while still enabling complex workflows. Constructor injection maintains testability and allows for mocking in tests.
+
 ## Technology Standards
 
 **Language**: TypeScript 5.x with strict mode
@@ -149,9 +174,11 @@ Bun MUST be used as the exclusive package manager and runtime for all developmen
 7. PRs must pass type checking (`bun run lint`), and tests
 8. Complex changes require architectural review
 9. Module structure must follow: domain/ → application/ → infrastructure/ → presentation/
-10. All new entities must implement soft delete pattern
+10. All new entities must implement soft delete pattern with trash/restore capabilities
 11. All repository methods must have explicit Input/Output types
 12. Query keys must use centralized factory functions
+13. Mutations affecting lists must implement optimistic updates
+14. All entities must include organizationId for multi-tenant isolation
 
 ## Module Structure
 
@@ -174,7 +201,10 @@ src/modules/[module-name]/
     │   ├── [entity]-view.tsx
     │   ├── create-[entity]-modal.tsx
     │   ├── edit-[entity]-modal.tsx
-    │   └── delete-[entity]-alert.tsx
+    │   ├── delete-[entity]-alert.tsx
+    │   ├── [entities]-trash-list-view.tsx
+    │   ├── restore-[entity]-alert.tsx
+    │   └── permanent-delete-[entity]-alert.tsx
     ├── hooks/
     │   ├── use-[entities]-query.ts
     │   ├── use-[entity]-query.ts
@@ -194,4 +224,4 @@ This constitution is the authoritative source for project standards. All code re
 
 **Compliance Review**: Quarterly review of codebase against constitution. Non-compliant code must be refactored or granted exception with documented justification.
 
-**Version**: 1.2.0 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-10
+**Version**: 1.3.0 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-15
