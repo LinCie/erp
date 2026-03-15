@@ -1,15 +1,15 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 1.3.0 → 1.4.0
+Version Change: 1.4.0 → 1.4.1
 Modified Principles:
   - None
 Added Sections:
-  - XVI. Trash/Restore UI Pattern
+  - None
 Removed Sections:
   - None
 Templates Requiring Updates:
-  - ✅ .specify/templates/module-template.md: Added trash/restore UI pattern documentation
+  - None
 Follow-up TODOs:
   - None
 -->
@@ -178,17 +178,18 @@ All entities implementing soft delete MUST provide consistent trash/restore UI c
 2. Use `bun install` to add dependencies (never npm/yarn)
 3. Use `bun run <script>` to execute all package.json scripts
 4. Database changes require migration review before deployment
-5. Migration types must be regenerated: `bun run db:codegen`
-6. API changes require contract test updates
-7. PRs must pass type checking (`bun run lint`), and tests
-8. Complex changes require architectural review
-9. Module structure must follow: domain/ → application/ → infrastructure/ → presentation/
-10. All new entities must implement soft delete pattern with trash/restore capabilities
-11. All repository methods must have explicit Input/Output types
-12. Query keys must use centralized factory functions
-13. Mutations affecting lists must implement optimistic updates
-14. All entities must include organizationId for multi-tenant isolation
-15. All soft-deletable entities must implement consistent trash/restore UI components
+5. Create migrations using `bun run db:migrate:create <name>` (never manual file creation)
+6. Migration types must be regenerated: `bun run db:codegen`
+7. API changes require contract test updates
+8. PRs must pass type checking (`bun run lint`), and tests
+9. Complex changes require architectural review
+10. Module structure must follow: domain/ → application/ → infrastructure/ → presentation/
+11. All new entities must implement soft delete pattern with trash/restore capabilities
+12. All repository methods must have explicit Input/Output types
+13. Query keys must use centralized factory functions
+14. Mutations affecting lists must implement optimistic updates
+15. All entities must include organizationId for multi-tenant isolation
+16. All soft-deletable entities must implement consistent trash/restore UI components
 
 ## Module Structure
 
@@ -234,4 +235,4 @@ This constitution is the authoritative source for project standards. All code re
 
 **Compliance Review**: Quarterly review of codebase against constitution. Non-compliant code must be refactored or granted exception with documented justification.
 
-**Version**: 1.4.0 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-15
+**Version**: 1.4.1 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-15
