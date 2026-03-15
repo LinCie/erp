@@ -1,21 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 1.2.0 → 1.3.0
+Version Change: 1.3.0 → 1.4.0
 Modified Principles:
-  - IX. Query Pattern with Key Factories (expanded to include optimistic updates)
+  - None
 Added Sections:
-  - XIII. Optimistic Updates Pattern
-  - XIV. Multi-Tenancy by Design
-  - XV. Cross-Module Service Orchestration
+  - XVI. Trash/Restore UI Pattern
 Removed Sections:
   - None
 Templates Requiring Updates:
-  - ⚠️ .specify/templates/module-template.md: Add optimistic updates, multi-tenancy, and orchestration examples
-  - ⚠️ .specify/templates/spec-template.md: Add trash/restore requirements section
+  - ✅ .specify/templates/module-template.md: Added trash/restore UI pattern documentation
 Follow-up TODOs:
-  - Create comprehensive module-template.md with all patterns
-  - Document trash/restore UI patterns in component templates
+  - None
 -->
 
 # ERP Constitution
@@ -147,6 +143,19 @@ Services MAY depend on other module's services for cross-cutting concerns.
 
 **Rationale**: Clean separation of concerns allows modules to remain focused while still enabling complex workflows. Constructor injection maintains testability and allows for mocking in tests.
 
+### XVI. Trash/Restore UI Pattern
+
+All entities implementing soft delete MUST provide consistent trash/restore UI components.
+- List views MUST include a toggle between "Active" and "Trash" states with clear visual distinction
+- Trash list views MUST display the deletion date and offer "Restore" and "Delete Forever" actions
+- Soft delete confirmations MUST explain that items can be restored from trash
+- Restore confirmations MUST confirm the entity will return to the active list
+- Permanent delete confirmations MUST warn that the action cannot be undone
+- Trash views SHOULD display a retention notice (e.g., "Items deleted after 30 days")
+- UI components MUST use consistent naming: `[entities]-trash-list-view`, `restore-[entity]-alert`, `permanent-delete-[entity]-alert`
+
+**Rationale**: Consistent trash/restore patterns reduce user anxiety about deletion, provide clear recovery paths, and prevent accidental data loss. Visual distinction between active and deleted states prevents confusion.
+
 ## Technology Standards
 
 **Language**: TypeScript 5.x with strict mode
@@ -179,6 +188,7 @@ Services MAY depend on other module's services for cross-cutting concerns.
 12. Query keys must use centralized factory functions
 13. Mutations affecting lists must implement optimistic updates
 14. All entities must include organizationId for multi-tenant isolation
+15. All soft-deletable entities must implement consistent trash/restore UI components
 
 ## Module Structure
 
@@ -224,4 +234,4 @@ This constitution is the authoritative source for project standards. All code re
 
 **Compliance Review**: Quarterly review of codebase against constitution. Non-compliant code must be refactored or granted exception with documented justification.
 
-**Version**: 1.3.0 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-15
+**Version**: 1.4.0 | **Ratified**: 2026-03-07 | **Last Amended**: 2026-03-15
