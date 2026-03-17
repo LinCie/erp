@@ -1,4 +1,4 @@
-type WarehouseOrderLineEntity = {
+type FulfillmentOrderLineEntity = {
   id: string;
   orderId: string;
   variantId: string;
@@ -10,4 +10,4 @@ type WarehouseOrderLineEntity = {
   deletedAt: Date | null;
 };
 
-export type { WarehouseOrderLineEntity };
+export type { FulfillmentOrderLineEntity };

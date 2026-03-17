@@ -13,7 +13,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   `.execute(db);
 
   await db.schema
-    .createTable("warehouse_orders")
+    .createTable("fulfillment_orders")
     .addColumn("id", "uuid", (col) => col.primaryKey().defaultTo(db.fn("uuidv7")))
     .addColumn("order_number", "varchar(100)", (col) => col.notNull())
     .addColumn("status", sql`order_status`, (col) => col.notNull())
@@ -24,13 +24,13 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 
   await sql`
     CREATE UNIQUE INDEX uidx_orders_number_active 
-    ON warehouse_orders(order_number) 
+    ON fulfillment_orders(order_number) 
     WHERE deleted_at IS NULL
   `.execute(db);
 
   await sql`
     CREATE INDEX idx_orders_status_active 
-    ON warehouse_orders(status) 
+    ON fulfillment_orders(status) 
     WHERE deleted_at IS NULL
   `.execute(db);
 }
@@ -38,7 +38,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 export async function down(db: Kysely<unknown>): Promise<void> {
   await db.schema.dropIndex("idx_orders_status_active").ifExists().execute();
   await db.schema.dropIndex("uidx_orders_number_active").ifExists().execute();
-  await db.schema.dropTable("warehouse_orders").ifExists().execute();
+  await db.schema.dropTable("fulfillment_orders").ifExists().execute();
 
   // Drop order_status enum
   await sql`

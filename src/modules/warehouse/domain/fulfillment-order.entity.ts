@@ -1,6 +1,6 @@
 export type OrderStatus = "draft" | "reserved" | "shipped" | "cancelled";
 
-type WarehouseOrderEntity = {
+type FulfillmentOrderEntity = {
   id: string;
   orderNumber: string;
   status: OrderStatus;
@@ -9,4 +9,4 @@ type WarehouseOrderEntity = {
   deletedAt: Date | null;
 };
 
-export type { WarehouseOrderEntity };
+export type { FulfillmentOrderEntity };

@@ -185,7 +185,7 @@ export interface Verification {
   value: string;
 }
 
-export interface WarehouseOrderLines {
+export interface FulfillmentOrderLines {
   createdAt: Generated<Timestamp>;
   deletedAt: Timestamp | null;
   id: Generated<string>;
@@ -197,7 +197,7 @@ export interface WarehouseOrderLines {
   variantId: string;
 }
 
-export interface WarehouseOrders {
+export interface FulfillmentOrders {
   createdAt: Generated<Timestamp>;
   deletedAt: Timestamp | null;
   id: Generated<string>;
@@ -220,6 +220,6 @@ export interface DB {
   user: User;
   variants: Variants;
   verification: Verification;
-  warehouseOrderLines: WarehouseOrderLines;
-  warehouseOrders: WarehouseOrders;
+  fulfillmentOrderLines: FulfillmentOrderLines;
+  fulfillmentOrders: FulfillmentOrders;
 }
