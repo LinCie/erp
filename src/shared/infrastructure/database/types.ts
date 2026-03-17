@@ -21,7 +21,11 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
+export type MovementType = "adjust" | "move" | "receive" | "reserve" | "ship";
+
 export type Numeric = ColumnType<string, number | string, number | string>;
+
+export type OrderStatus = "cancelled" | "draft" | "reserved" | "shipped";
 
 export type ProductStatus = "active" | "archived" | "draft";
 
@@ -43,6 +47,43 @@ export interface Account {
   userId: string;
 }
 
+export interface Inventory {
+  createdAt: Generated<Timestamp>;
+  deletedAt: Timestamp | null;
+  id: Generated<string>;
+  locationId: string;
+  quantityAvailable: Generated<number>;
+  quantityReserved: Generated<number>;
+  updatedAt: Generated<Timestamp>;
+  variantId: string;
+}
+
+export interface InventoryEvents {
+  action: string;
+  afterState: Json | null;
+  beforeState: Json | null;
+  createdAt: Generated<Timestamp>;
+  deletedAt: Timestamp | null;
+  entityId: string;
+  entityType: string;
+  id: Generated<string>;
+  updatedAt: Generated<Timestamp>;
+}
+
+export interface InventoryMovements {
+  createdAt: Generated<Timestamp>;
+  deletedAt: Timestamp | null;
+  fromLocationId: string | null;
+  id: Generated<string>;
+  movementType: MovementType;
+  quantity: number;
+  referenceId: string | null;
+  referenceType: string | null;
+  toLocationId: string | null;
+  updatedAt: Generated<Timestamp>;
+  variantId: string;
+}
+
 export interface Invitation {
   createdAt: Generated<Timestamp>;
   email: string;
@@ -52,6 +93,16 @@ export interface Invitation {
   organizationId: string;
   role: string | null;
   status: string;
+}
+
+export interface Locations {
+  createdAt: Generated<Timestamp>;
+  deletedAt: Timestamp | null;
+  id: Generated<string>;
+  name: string;
+  parentId: string | null;
+  type: string;
+  updatedAt: Generated<Timestamp>;
 }
 
 export interface Member {
@@ -134,9 +185,34 @@ export interface Verification {
   value: string;
 }
 
+export interface WarehouseOrderLines {
+  createdAt: Generated<Timestamp>;
+  deletedAt: Timestamp | null;
+  id: Generated<string>;
+  orderId: string;
+  quantity: number;
+  quantityReserved: Generated<number>;
+  quantityShipped: Generated<number>;
+  updatedAt: Generated<Timestamp>;
+  variantId: string;
+}
+
+export interface WarehouseOrders {
+  createdAt: Generated<Timestamp>;
+  deletedAt: Timestamp | null;
+  id: Generated<string>;
+  orderNumber: string;
+  status: OrderStatus;
+  updatedAt: Generated<Timestamp>;
+}
+
 export interface DB {
   account: Account;
+  inventory: Inventory;
+  inventoryEvents: InventoryEvents;
+  inventoryMovements: InventoryMovements;
   invitation: Invitation;
+  locations: Locations;
   member: Member;
   organization: Organization;
   products: Products;
@@ -144,4 +220,6 @@ export interface DB {
   user: User;
   variants: Variants;
   verification: Verification;
+  warehouseOrderLines: WarehouseOrderLines;
+  warehouseOrders: WarehouseOrders;
 }
